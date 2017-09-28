@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="library_no_external_storage">[no external storage]</string>
+	<string name="library_not_a_directory">[not a directory]</string>
+	<string name="library_permission_denied">[permission denied]</string>
+</resources>
