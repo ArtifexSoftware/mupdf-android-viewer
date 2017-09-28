@@ -1,0 +1,4 @@
+.externalNativeBuild
+.gradle
+build
+local.properties
