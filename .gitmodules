@@ -1,0 +1,3 @@
+[submodule "jni"]
+	path = jni
+	url = ../mupdf-android-fitz.git
