@@ -17,5 +17,24 @@ android {
 	defaultConfig {
 		minSdkVersion 16
 		targetSdkVersion 25
+		versionName '1.11.0'
+		versionCode 10
+	}
+
+	splits {
+		abi {
+			enable true
+			universalApk true
+		}
+	}
+
+	// Increment version code for each ABI variant
+	def abiOffsets = [ 'armeabi':1, 'armeabi-v7a':2, 'arm64-v8a':3, 'x86':4, 'x86_64':5, 'mips':6, 'mips64':7, ]
+	applicationVariants.all { variant ->
+		variant.outputs.each { output ->
+			def offset = abiOffsets.get(output.getFilter(com.android.build.OutputFile.ABI))
+			if (offset != null)
+				output.versionCodeOverride = variant.versionCode + offset
+		}
 	}
 }
