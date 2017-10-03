@@ -909,6 +909,7 @@ public class ReaderView
 			if (mLinksEnabled && pageView != null && (link = pageView.hitLink(e.getX(), e.getY())) != null) {
 				if (link.uri != null) {
 					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.uri));
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); // API>=21: FLAG_ACTIVITY_NEW_DOCUMENT
 					mContext.startActivity(intent);
 				} else {
 					pushHistory();

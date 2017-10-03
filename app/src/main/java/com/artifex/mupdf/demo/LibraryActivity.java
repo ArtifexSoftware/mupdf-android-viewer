@@ -19,6 +19,7 @@ import android.support.v4.content.ContextCompat;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -121,7 +122,7 @@ public class LibraryActivity extends ListActivity
 		File[] files = currentDirectory.listFiles(new FileFilter() {
 			public boolean accept(File file) {
 				if (file.isDirectory()) return true;
-				String suffix = file.getName().toLowerCase();
+				String suffix = file.getName().toLowerCase(Locale.ROOT);
 				if (suffix.endsWith(".pdf")) return true;
 				if (suffix.endsWith(".xps")) return true;
 				if (suffix.endsWith(".cbz")) return true;

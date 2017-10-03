@@ -39,8 +39,10 @@ import android.widget.TextView;
 import android.widget.ViewAnimator;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class DocumentActivity extends Activity
 {
@@ -138,8 +140,10 @@ public class DocumentActivity extends Activity
 			if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 				Uri uri = intent.getData();
 				System.out.println("URI to open is: " + uri);
-				if (uri.toString().startsWith("content://")) {
-					String reason = null;
+				if (uri.getScheme().equals("file")) {
+					String path = uri.getPath();
+					core = openFile(path);
+				} else {
 					try {
 						InputStream is = getContentResolver().openInputStream(uri);
 						int len;
@@ -152,40 +156,11 @@ public class DocumentActivity extends Activity
 						buffer = bufferStream.toByteArray();
 						is.close();
 					}
-					catch (java.lang.OutOfMemoryError e) {
-						System.out.println("Out of memory during buffer reading");
-						reason = e.toString();
-					}
-					catch (Exception e) {
-						System.out.println("Exception reading from stream: " + e);
-
-						// Handle view requests from the Transformer Prime's file manager
-						// Hopefully other file managers will use this same scheme, if not
-						// using explicit paths.
-						// I'm hoping that this case below is no longer needed...but it's
-						// hard to test as the file manager seems to have changed in 4.x.
-						try {
-							Cursor cursor = getContentResolver().query(uri, new String[]{"_data"}, null, null, null);
-							if (cursor.moveToFirst()) {
-								String str = cursor.getString(0);
-								if (str == null) {
-									reason = "Couldn't parse data in intent";
-								}
-								else {
-									uri = Uri.parse(str);
-								}
-							}
-						}
-						catch (Exception e2) {
-							System.out.println("Exception in Transformer Prime file manager code: " + e2);
-							reason = e2.toString();
-						}
-					}
-					if (reason != null) {
-						buffer = null;
+					catch (IOException e) {
+						String reason = e.toString();
 						Resources res = getResources();
 						AlertDialog alert = mAlertBuilder.create();
-						setTitle(String.format(res.getString(R.string.cannot_open_document_Reason), reason));
+						setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
 						alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
 								new DialogInterface.OnClickListener() {
 									public void onClick(DialogInterface dialog, int which) {
@@ -195,15 +170,7 @@ public class DocumentActivity extends Activity
 						alert.show();
 						return;
 					}
-				}
-				if (buffer != null) {
 					core = openBuffer(buffer, intent.getType());
-				} else {
-					String path = Uri.decode(uri.getEncodedPath());
-					if (path == null) {
-						path = uri.toString();
-					}
-					core = openFile(path);
 				}
 				SearchTaskResult.set(null);
 			}
@@ -227,7 +194,6 @@ public class DocumentActivity extends Activity
 						}
 					});
 			alert.setOnCancelListener(new OnCancelListener() {
-
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					finish();
@@ -280,8 +246,7 @@ public class DocumentActivity extends Activity
 				if (core == null)
 					return;
 
-				mPageNumberView.setText(String.format("%d / %d", i + 1,
-						core.countPages()));
+				mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", i + 1, core.countPages()));
 				mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
 				mPageSlider.setProgress(i * mPageSliderRes);
 				super.onMoveToChild(i);
@@ -480,7 +445,7 @@ public class DocumentActivity extends Activity
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
 			edit.putInt("page"+mFileName, mDocView.getDisplayedViewIndex());
-			edit.commit();
+			edit.apply();
 		}
 
 		if (!mButtonsVisible)
@@ -501,7 +466,7 @@ public class DocumentActivity extends Activity
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
 			edit.putInt("page"+mFileName, mDocView.getDisplayedViewIndex());
-			edit.commit();
+			edit.apply();
 		}
 	}
 
@@ -630,11 +595,11 @@ public class DocumentActivity extends Activity
 	private void updatePageNumView(int index) {
 		if (core == null)
 			return;
-		mPageNumberView.setText(String.format("%d / %d", index + 1, core.countPages()));
+		mPageNumberView.setText(String.format(Locale.ROOT, "%d / %d", index + 1, core.countPages()));
 	}
 
 	private void makeButtonsView() {
-		mButtonsView = getLayoutInflater().inflate(R.layout.document_activity,null);
+		mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
 		mFilenameView = (TextView)mButtonsView.findViewById(R.id.docNameText);
 		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
