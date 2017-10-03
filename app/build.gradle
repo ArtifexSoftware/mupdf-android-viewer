@@ -37,4 +37,20 @@ android {
 				output.versionCodeOverride = variant.versionCode + offset
 		}
 	}
+
+	if (project.hasProperty('release_storeFile')) {
+		signingConfigs {
+			release {
+				storeFile file(release_storeFile)
+				storePassword release_storePassword
+				keyAlias release_keyAlias
+				keyPassword release_keyPassword
+			}
+		}
+		buildTypes {
+			release {
+				signingConfig signingConfigs.release
+			}
+		}
+	}
 }
