@@ -1,4 +1,4 @@
-package com.artifex.mupdf.demo;
+package com.artifex.mupdf.viewer.app;
 
 import android.Manifest;
 import android.app.Activity;
@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.artifex.mupdf.fitz.Document;
 import com.artifex.mupdf.viewer.DocumentActivity;
 
 public class LibraryActivity extends ListActivity
@@ -121,14 +122,9 @@ public class LibraryActivity extends ListActivity
 
 		File[] files = currentDirectory.listFiles(new FileFilter() {
 			public boolean accept(File file) {
-				if (file.isDirectory()) return true;
-				String suffix = file.getName().toLowerCase(Locale.ROOT);
-				if (suffix.endsWith(".pdf")) return true;
-				if (suffix.endsWith(".xps")) return true;
-				if (suffix.endsWith(".cbz")) return true;
-				if (suffix.endsWith(".epub")) return true;
-				if (suffix.endsWith(".fb2")) return true;
-				return false;
+				if (file.isDirectory())
+					return true;
+				return Document.recognize(file.getName());
 			}
 		});
 

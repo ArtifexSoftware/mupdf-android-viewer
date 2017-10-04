@@ -22,7 +22,7 @@ sync: archive
 	rsync -av MAVEN/com/ ghostscript.com:/var/www/maven.ghostscript.com/com/
 
 run: installDebug ;
-	adb shell am start -n com.artifex.mupdf.demo/.LibraryActivity
+	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
 
 clean:
 	rm -rf .gradle build
