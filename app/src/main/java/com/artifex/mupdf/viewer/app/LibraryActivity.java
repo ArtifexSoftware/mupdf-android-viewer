@@ -1,12 +1,10 @@
 package com.artifex.mupdf.viewer.app;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -19,11 +17,10 @@ import android.support.v4.content.ContextCompat;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Comparator;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.artifex.mupdf.fitz.Document;
+import com.artifex.mupdf.fitz.Document; /* for file name recognition */
 import com.artifex.mupdf.viewer.DocumentActivity;
 
 public class LibraryActivity extends ListActivity
@@ -64,16 +61,17 @@ public class LibraryActivity extends ListActivity
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		/* Hide 'home' icon on old themes */
+		getActionBar().setDisplayShowHomeEnabled(false);
+
+		topDirectory = Environment.getExternalStorageDirectory();
 		currentDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		topDirectory = currentDirectory;
 
 		adapter = new ArrayAdapter<Item>(this, android.R.layout.simple_list_item_1);
 		setListAdapter(adapter);
 
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
 			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
-
-		}
 	}
 
 	public void onResume() {
@@ -111,10 +109,10 @@ public class LibraryActivity extends ListActivity
 		}
 
 		String curPath = currentDirectory.getAbsolutePath();
-		String topPath = topDirectory.getParentFile().getAbsolutePath();
+		String topPath = topDirectory.getAbsolutePath();
 		if (curPath.startsWith(topPath))
-			curPath = curPath.substring(topPath.length() + 1); /* +1 for trailing slash */
-		setTitle(curPath + "/");
+			curPath = "~" + curPath.substring(topPath.length());
+		setTitle(curPath);
 
 		File parent = currentDirectory.getParentFile();
 		if (parent != null && !currentDirectory.equals(topDirectory))
@@ -155,6 +153,9 @@ public class LibraryActivity extends ListActivity
 			updateFileList();
 			return;
 		}
+
+		if (!item.file.isFile())
+			return;
 
 		Intent intent = new Intent(this, DocumentActivity.class);
 		// API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
