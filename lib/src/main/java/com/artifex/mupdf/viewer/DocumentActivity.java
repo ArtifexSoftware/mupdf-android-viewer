@@ -290,7 +290,11 @@ public class DocumentActivity extends Activity
 		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
 
 		// Set the file-name text
-		mFilenameView.setText(mFileName);
+		String docTitle = core.getTitle();
+		if (docTitle != null)
+			mFilenameView.setText(docTitle);
+		else
+			mFilenameView.setText(mFileName);
 
 		// Activate the seekbar
 		mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

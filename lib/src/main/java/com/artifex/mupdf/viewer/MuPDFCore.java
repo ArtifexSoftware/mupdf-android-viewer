@@ -44,6 +44,10 @@ public class MuPDFCore
 		currentPage = -1;
 	}
 
+	public String getTitle() {
+		return doc.getMetaData(Document.META_INFO_TITLE);
+	}
+
 	public int countPages() {
 		return pageCount;
 	}
