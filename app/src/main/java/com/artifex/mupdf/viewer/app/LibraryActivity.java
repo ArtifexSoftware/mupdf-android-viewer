@@ -2,7 +2,9 @@ package com.artifex.mupdf.viewer.app;
 
 import android.Manifest;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ public class LibraryActivity extends ListActivity
 	protected final int UPDATE_DELAY = 5000;
 	protected final int PERMISSION_REQUEST = 42;
 
+	protected SharedPreferences prefs;
 	protected File topDirectory, currentDirectory;
 	protected ArrayAdapter<Item> adapter;
 	protected Timer updateTimer;
@@ -64,8 +67,10 @@ public class LibraryActivity extends ListActivity
 		/* Hide 'home' icon on old themes */
 		getActionBar().setDisplayShowHomeEnabled(false);
 
+		prefs = getPreferences(Context.MODE_PRIVATE);
+
 		topDirectory = Environment.getExternalStorageDirectory();
-		currentDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+		currentDirectory = new File(prefs.getString("currentDirectory", topDirectory.getAbsolutePath()));
 
 		adapter = new ArrayAdapter<Item>(this, android.R.layout.simple_list_item_1);
 		setListAdapter(adapter);
@@ -93,6 +98,9 @@ public class LibraryActivity extends ListActivity
 		super.onPause();
 		updateTimer.cancel();
 		updateTimer = null;
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString("currentDirectory", currentDirectory.getAbsolutePath());
+		editor.apply();
 	}
 
 	protected void updateFileList() {
