@@ -1,5 +1,8 @@
 .externalNativeBuild
 .gradle
+.idea
+*.iml
+android.keystore
 build
 gradle.properties
 local.properties
