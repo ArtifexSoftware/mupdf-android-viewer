@@ -7,7 +7,7 @@
 		android:name="android.permission.READ_EXTERNAL_STORAGE"
 		/>
 	<application
-		android:label="MuPDF"
+		android:label="MuPDF viewer"
 		android:icon="@drawable/ic_mupdf"
 		>
 		<activity
