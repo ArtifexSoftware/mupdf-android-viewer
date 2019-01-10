@@ -135,8 +135,13 @@ public class MuPDFCore
 	}
 
 	public synchronized boolean hasOutline() {
-		if (outline == null)
-			outline = doc.loadOutline();
+		if (outline == null) {
+			try {
+				outline = doc.loadOutline();
+			} catch (Exception ex) {
+				/* ignore error */
+			}
+		}
 		return outline != null;
 	}
 
