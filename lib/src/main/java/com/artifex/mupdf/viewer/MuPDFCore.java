@@ -1,20 +1,20 @@
 package com.artifex.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
+import com.artifex.mupdf.fitz.DisplayList;
 import com.artifex.mupdf.fitz.Document;
+import com.artifex.mupdf.fitz.Link;
+import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.Outline;
 import com.artifex.mupdf.fitz.Page;
-import com.artifex.mupdf.fitz.Link;
-import com.artifex.mupdf.fitz.DisplayList;
+import com.artifex.mupdf.fitz.Quad;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
-import com.artifex.mupdf.fitz.Matrix;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
-import android.graphics.RectF;
 
 import java.util.ArrayList;
 
@@ -125,13 +125,9 @@ public class MuPDFCore
 		return page.getLinks();
 	}
 
-	public synchronized RectF[] searchPage(int pageNum, String text) {
+	public synchronized Quad[] searchPage(int pageNum, String text) {
 		gotoPage(pageNum);
-		Rect[] rs = page.search(text);
-		RectF[] rfs = new RectF[rs.length];
-		for (int i=0; i < rs.length; ++i)
-			rfs[i] = new RectF(rs[i].x0, rs[i].y0, rs[i].x1, rs[i].y1);
-		return rfs;
+		return page.search(text);
 	}
 
 	public synchronized boolean hasOutline() {

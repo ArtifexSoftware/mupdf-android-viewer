@@ -2,6 +2,7 @@ package com.artifex.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
+import com.artifex.mupdf.fitz.Quad;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -21,7 +22,6 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -76,7 +76,7 @@ public class PageView extends ViewGroup {
 	private       ImageView mPatch;
 	private       Bitmap    mPatchBm;
 	private       CancellableAsyncTask<Void,Void> mDrawPatch;
-	private       RectF     mSearchBoxes[];
+	private       Quad      mSearchBoxes[];
 	protected     Link      mLinks[];
 	private       View      mSearchView;
 	private       boolean   mIsBlank;
@@ -263,10 +263,15 @@ public class PageView extends ViewGroup {
 
 					if (!mIsBlank && mSearchBoxes != null) {
 						paint.setColor(HIGHLIGHT_COLOR);
-						for (RectF rect : mSearchBoxes)
-							canvas.drawRect(rect.left*scale, rect.top*scale,
-									rect.right*scale, rect.bottom*scale,
-									paint);
+						for (Quad q : mSearchBoxes) {
+							Path path = new Path();
+							path.moveTo(q.ul_x * scale, q.ul_y * scale);
+							path.lineTo(q.ll_x * scale, q.ll_y * scale);
+							path.lineTo(q.lr_x * scale, q.lr_y * scale);
+							path.lineTo(q.ur_x * scale, q.ur_y * scale);
+							path.close();
+							canvas.drawPath(path, paint);
+						}
 					}
 
 					if (!mIsBlank && mLinks != null && mHighlightLinks) {
@@ -284,7 +289,7 @@ public class PageView extends ViewGroup {
 		requestLayout();
 	}
 
-	public void setSearchBoxes(RectF searchBoxes[]) {
+	public void setSearchBoxes(Quad searchBoxes[]) {
 		mSearchBoxes = searchBoxes;
 		if (mSearchView != null)
 			mSearchView.invalidate();

@@ -1,14 +1,14 @@
 package com.artifex.mupdf.viewer;
 
-import android.graphics.RectF;
+import com.artifex.mupdf.fitz.Quad;
 
 public class SearchTaskResult {
 	public final String txt;
 	public final int pageNumber;
-	public final RectF searchBoxes[];
+	public final Quad searchBoxes[];
 	static private SearchTaskResult singleton;
 
-	SearchTaskResult(String _txt, int _pageNumber, RectF _searchBoxes[]) {
+	SearchTaskResult(String _txt, int _pageNumber, Quad _searchBoxes[]) {
 		txt = _txt;
 		pageNumber = _pageNumber;
 		searchBoxes = _searchBoxes;
