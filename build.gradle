@@ -1,15 +1,20 @@
 buildscript {
 	repositories {
 		jcenter()
+		google()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.3.3'
+		classpath 'com.android.tools.build:gradle:3.1.0'
 	}
 }
 
 allprojects {
 	repositories {
+		if (project.hasProperty('MAVEN_REPO')) {
+			maven { url MAVEN_REPO }
+		}
 		jcenter()
+		google()
 		maven { url 'http://maven.ghostscript.com/' }
 	}
 }

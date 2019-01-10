@@ -2,18 +2,17 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 group = 'com.artifex.mupdf'
-version = '1.13.0'
+version = '1.14.0'
 
 dependencies {
 	if (file('../jni/build.gradle').isFile())
-		compile project(':jni')
+		api project(':jni')
 	else
-		compile 'com.artifex.mupdf:fitz:1.13.0'
+		api 'com.artifex.mupdf:fitz:1.14.0'
 }
 
 android {
 	compileSdkVersion 25
-	buildToolsVersion '25.0.3'
 	defaultConfig {
 		minSdkVersion 16
 		targetSdkVersion 25
@@ -23,7 +22,11 @@ android {
 uploadArchives {
 	repositories {
 		mavenDeployer {
-			repository(url: 'file://MAVEN')
+			if (project.hasProperty('MAVEN_REPO')) {
+				repository(url: MAVEN_REPO)
+			} else {
+				repository(url: 'file://MAVEN')
+			}
 			pom {
 				artifactId = 'viewer'
 				project {
