@@ -30,8 +30,14 @@ public class MuPDFCore
 	private float pageHeight;
 	private DisplayList displayList;
 
+	/* Default to "A Format" pocket book size. */
+	private int layoutW = 312;
+	private int layoutH = 504;
+	private int layoutEM = 10;
+
 	public MuPDFCore(String filename) {
 		doc = Document.openDocument(filename);
+		doc.layout(layoutW, layoutH, layoutEM);
 		pageCount = doc.countPages();
 		resolution = 160;
 		currentPage = -1;
@@ -39,6 +45,7 @@ public class MuPDFCore
 
 	public MuPDFCore(byte buffer[], String magic) {
 		doc = Document.openDocument(buffer, magic);
+		doc.layout(layoutW, layoutH, layoutEM);
 		pageCount = doc.countPages();
 		resolution = 160;
 		currentPage = -1;
@@ -50,6 +57,31 @@ public class MuPDFCore
 
 	public int countPages() {
 		return pageCount;
+	}
+
+	public synchronized boolean isReflowable() {
+		return doc.isReflowable();
+	}
+
+	public synchronized int layout(int oldPage, int w, int h, int em) {
+		if (w != layoutW || h != layoutH || em != layoutEM) {
+			System.out.println("LAYOUT: " + w + "," + h);
+			layoutW = w;
+			layoutH = h;
+			layoutEM = em;
+			long mark = doc.makeBookmark(oldPage);
+			doc.layout(layoutW, layoutH, layoutEM);
+			currentPage = -1;
+			pageCount = doc.countPages();
+			outline = null;
+			try {
+				outline = doc.loadOutline();
+			} catch (Exception ex) {
+				/* ignore error */
+			}
+			return doc.findBookmark(mark);
+		}
+		return oldPage;
 	}
 
 	private synchronized void gotoPage(int pageNum) {
@@ -109,6 +141,7 @@ public class MuPDFCore
 
 		AndroidDrawDevice dev = new AndroidDrawDevice(bm, patchX, patchY);
 		displayList.run(dev, ctm, cookie);
+		dev.close();
 		dev.destroy();
 	}
 

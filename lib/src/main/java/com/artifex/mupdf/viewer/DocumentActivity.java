@@ -77,6 +77,13 @@ public class DocumentActivity extends Activity
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 
+	private int mLayoutEM = 10;
+	private int mLayoutW = 312;
+	private int mLayoutH = 504;
+
+	protected View mLayoutButton;
+	protected PopupMenu mLayoutPopupMenu;
+
 	private MuPDFCore openFile(String path)
 	{
 		int lastSlashPos = path.lastIndexOf('/');
@@ -234,6 +241,14 @@ public class DocumentActivity extends Activity
 		alert.show();
 	}
 
+	public void relayoutDocument() {
+		int loc = core.layout(mDocView.mCurrent, mLayoutW, mLayoutH, mLayoutEM);
+		mFlatOutline = null;
+		mDocView.mHistory.clear();
+		mDocView.refresh();
+		mDocView.setDisplayedViewIndex(loc);
+	}
+
 	public void createUI(Bundle savedInstanceState) {
 		if (core == null)
 			return;
@@ -265,6 +280,17 @@ public class DocumentActivity extends Activity
 			@Override
 			protected void onDocMotion() {
 				hideButtons();
+			}
+
+			@Override
+			public void onSizeChanged(int w, int h, int oldw, int oldh) {
+				if (core.isReflowable()) {
+					mLayoutW = w * 72 / 160;
+					mLayoutH = h * 72 / 160;
+					relayoutDocument();
+				} else {
+					refresh();
+				}
 			}
 		};
 		mDocView.setAdapter(new PageAdapter(this, core));
@@ -384,6 +410,37 @@ public class DocumentActivity extends Activity
 				setLinkHighlight(!mLinkHighlight);
 			}
 		});
+
+		if (core.isReflowable()) {
+			mLayoutButton.setVisibility(View.VISIBLE);
+			mLayoutPopupMenu = new PopupMenu(this, mLayoutButton);
+			mLayoutPopupMenu.getMenuInflater().inflate(R.menu.layout_menu, mLayoutPopupMenu.getMenu());
+			mLayoutPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+				public boolean onMenuItemClick(MenuItem item) {
+					float oldLayoutEM = mLayoutEM;
+					int id = item.getItemId();
+					if (id == R.id.action_layout_6pt) mLayoutEM = 6;
+					else if (id == R.id.action_layout_7pt) mLayoutEM = 7;
+					else if (id == R.id.action_layout_8pt) mLayoutEM = 8;
+					else if (id == R.id.action_layout_9pt) mLayoutEM = 9;
+					else if (id == R.id.action_layout_10pt) mLayoutEM = 10;
+					else if (id == R.id.action_layout_11pt) mLayoutEM = 11;
+					else if (id == R.id.action_layout_12pt) mLayoutEM = 12;
+					else if (id == R.id.action_layout_13pt) mLayoutEM = 13;
+					else if (id == R.id.action_layout_14pt) mLayoutEM = 14;
+					else if (id == R.id.action_layout_15pt) mLayoutEM = 15;
+					else if (id == R.id.action_layout_16pt) mLayoutEM = 16;
+					if (oldLayoutEM != mLayoutEM)
+						relayoutDocument();
+					return true;
+				}
+			});
+			mLayoutButton.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					mLayoutPopupMenu.show();
+				}
+			});
+		}
 
 		if (core.hasOutline()) {
 			mOutlineButton.setOnClickListener(new View.OnClickListener() {
@@ -615,6 +672,7 @@ public class DocumentActivity extends Activity
 		mSearchClose = (ImageButton)mButtonsView.findViewById(R.id.searchClose);
 		mSearchText = (EditText)mButtonsView.findViewById(R.id.searchText);
 		mLinkButton = (ImageButton)mButtonsView.findViewById(R.id.linkButton);
+		mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
 		mTopBarSwitcher.setVisibility(View.INVISIBLE);
 		mPageNumberView.setVisibility(View.INVISIBLE);
 

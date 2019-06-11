@@ -41,6 +41,10 @@ public class PageAdapter extends BaseAdapter {
 		mSharedHqBm = null;
 	}
 
+	public void refresh() {
+		mPageSizes.clear();
+	}
+
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;
 		if (convertView == null) {

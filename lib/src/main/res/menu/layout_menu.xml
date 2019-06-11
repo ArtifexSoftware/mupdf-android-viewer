@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/action_layout_6pt" android:title="6pt" />
+	<item android:id="@+id/action_layout_7pt" android:title="7pt" />
+	<item android:id="@+id/action_layout_8pt" android:title="8pt" />
+	<item android:id="@+id/action_layout_9pt" android:title="9pt" />
+	<item android:id="@+id/action_layout_10pt" android:title="10pt" />
+	<item android:id="@+id/action_layout_11pt" android:title="11pt" />
+	<item android:id="@+id/action_layout_12pt" android:title="12pt" />
+	<item android:id="@+id/action_layout_13pt" android:title="13pt" />
+	<item android:id="@+id/action_layout_14pt" android:title="14pt" />
+	<item android:id="@+id/action_layout_15pt" android:title="15pt" />
+	<item android:id="@+id/action_layout_16pt" android:title="16pt" />
+</menu>

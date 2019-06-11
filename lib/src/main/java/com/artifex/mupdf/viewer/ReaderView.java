@@ -45,8 +45,8 @@ public class ReaderView
 
 	private static final boolean HORIZONTAL_SCROLLING = true;
 
-	private Adapter           mAdapter;
-	private int               mCurrent;    // Adapter's index for the current view
+	private PageAdapter           mAdapter;
+	protected int               mCurrent;    // Adapter's index for the current view
 	private boolean           mResetLayout;
 	private final SparseArray<View>
 				  mChildViews = new SparseArray<View>(3);
@@ -337,6 +337,18 @@ public class ReaderView
 
 		mScale = 1.0f;
 		mXScroll = mYScroll = 0;
+
+		/* All page views need recreating since both page and screen has changed size,
+		 * invalidating both sizes and bitmaps. */
+		mAdapter.refresh();
+		int numChildren = mChildViews.size();
+		for (int i = 0; i < mChildViews.size(); i++) {
+			View v = mChildViews.valueAt(i);
+			onNotInUse(v);
+			removeViewInLayout(v);
+		}
+		mChildViews.clear();
+		mViewCache.clear();
 
 		requestLayout();
 	}
@@ -753,15 +765,9 @@ public class ReaderView
 
 	@Override
 	public void setAdapter(Adapter adapter) {
-
-		//  release previous adapter's bitmaps
-		if (null!=mAdapter && adapter!=mAdapter) {
-			if (adapter instanceof PageAdapter){
-				((PageAdapter) adapter).releaseBitmaps();
-			}
-		}
-
-		mAdapter = adapter;
+		if (mAdapter != null && mAdapter != adapter)
+			mAdapter.releaseBitmaps();
+		mAdapter = (PageAdapter) adapter;
 
 		requestLayout();
 	}
