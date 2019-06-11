@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -77,6 +78,7 @@ public class DocumentActivity extends Activity
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 
+	protected int mDisplayDPI;
 	private int mLayoutEM = 10;
 	private int mLayoutW = 312;
 	private int mLayoutH = 504;
@@ -132,6 +134,10 @@ public class DocumentActivity extends Activity
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		mDisplayDPI = (int)metrics.densityDpi;
 
 		mAlertBuilder = new AlertDialog.Builder(this);
 
@@ -285,8 +291,8 @@ public class DocumentActivity extends Activity
 			@Override
 			public void onSizeChanged(int w, int h, int oldw, int oldh) {
 				if (core.isReflowable()) {
-					mLayoutW = w * 72 / 160;
-					mLayoutH = h * 72 / 160;
+					mLayoutW = w * 72 / mDisplayDPI;
+					mLayoutH = h * 72 / mDisplayDPI;
 					relayoutDocument();
 				} else {
 					refresh();
