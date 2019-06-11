@@ -8,7 +8,7 @@ dependencies {
 	if (file('../lib/build.gradle').isFile())
 		api project(':lib')
 	else
-		api 'com.artifex.mupdf:viewer:1.15.0'
+		api 'com.artifex.mupdf:viewer:1.15.1'
 }
 
 android {
@@ -16,8 +16,8 @@ android {
 	defaultConfig {
 		minSdkVersion 16
 		targetSdkVersion 26
-		versionName '1.15.0'
-		versionCode 50
+		versionName '1.15.1'
+		versionCode 60
 	}
 
 	splits {
