@@ -130,7 +130,7 @@ public class MuPDFCore
 		gotoPage(pageNum);
 
 		if (displayList == null)
-			displayList = page.toDisplayList(false);
+			displayList = page.toDisplayList();
 
 		float zoom = resolution / 72;
 		Matrix ctm = new Matrix(zoom, zoom);
