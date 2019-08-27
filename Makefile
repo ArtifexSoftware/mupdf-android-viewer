@@ -5,15 +5,15 @@ default: debug
 generate:
 	if [ -f jni/Makefile ]; then make -C jni generate; fi
 debug: generate
-	./gradlew assembleDebug
+	./gradlew --warning-mode=all assembleDebug bundleDebug
 release: generate
-	./gradlew assembleRelease
+	./gradlew --warning-mode=all assembleRelease bundleRelease
 install: generate
-	./gradlew installDebug
+	./gradlew --warning-mode=all installDebug
 lint:
-	./gradlew lint
+	./gradlew --warning-mode=all lint
 archive: generate
-	./gradlew uploadArchives
+	./gradlew --warning-mode=all uploadArchives
 sync: archive
 	rsync -av MAVEN/com/ ghostscript.com:/var/www/maven.ghostscript.com/com/
 
