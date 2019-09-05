@@ -31,7 +31,7 @@
 				android:paddingRight="8dp"
 				android:singleLine="true"
 				android:ellipsize="end"
-				android:textSize="16dp"
+				android:textSize="16sp"
 				android:textColor="@android:color/white"
 				/>
 
@@ -97,7 +97,7 @@
 				android:imeOptions="actionSearch"
 				android:singleLine="true"
 				android:hint="@string/search"
-				android:textSize="16dp"
+				android:textSize="16sp"
 				android:textColor="@android:color/white"
 				android:textColorHighlight="#a0a0a0"
 				android:textColorHint="#a0a0a0"
@@ -155,7 +155,7 @@
 			android:layout_centerHorizontal="true"
 			android:layout_marginBottom="16dp"
 			android:background="@drawable/page_indicator"
-			android:textSize="16dp"
+			android:textSize="16sp"
 			android:textColor="@android:color/white"
 			/>
 
