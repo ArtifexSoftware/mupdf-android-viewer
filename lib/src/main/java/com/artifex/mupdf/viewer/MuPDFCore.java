@@ -69,7 +69,7 @@ public class MuPDFCore
 			layoutW = w;
 			layoutH = h;
 			layoutEM = em;
-			long mark = doc.makeBookmark(oldPage);
+			long mark = doc.makeBookmark(doc.locationFromPageNumber(oldPage));
 			doc.layout(layoutW, layoutH, layoutEM);
 			currentPage = -1;
 			pageCount = doc.countPages();
@@ -79,7 +79,7 @@ public class MuPDFCore
 			} catch (Exception ex) {
 				/* ignore error */
 			}
-			return doc.findBookmark(mark);
+			return doc.pageNumberFromLocation(doc.findBookmark(mark));
 		}
 		return oldPage;
 	}
@@ -158,6 +158,10 @@ public class MuPDFCore
 		return page.getLinks();
 	}
 
+	public synchronized int resolveLink(Link link) {
+		return doc.pageNumberFromLocation(doc.resolveLink(link));
+	}
+
 	public synchronized Quad[] searchPage(int pageNum, String text) {
 		gotoPage(pageNum);
 		return page.search(text);
@@ -176,8 +180,10 @@ public class MuPDFCore
 
 	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent) {
 		for (Outline node : list) {
-			if (node.title != null)
-				result.add(new OutlineActivity.Item(indent + node.title, node.page));
+			if (node.title != null) {
+				int page = doc.pageNumberFromLocation(doc.resolveLink(node));
+				result.add(new OutlineActivity.Item(indent + node.title, page));
+			}
 			if (node.down != null)
 				flattenOutlineNodes(result, node.down, indent + "    ");
 		}

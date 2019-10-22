@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap.Config;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -488,7 +489,18 @@ public class PageView extends ViewGroup {
 		return true;
 	}
 
-	public Link hitLink(float x, float y) {
+	public int hitLink(Link link) {
+		if (link.isExternal()) {
+			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.uri));
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); // API>=21: FLAG_ACTIVITY_NEW_DOCUMENT
+			mContext.startActivity(intent);
+			return 0;
+		} else {
+			return mCore.resolveLink(link);
+		}
+	}
+
+	public int hitLink(float x, float y) {
 		// Since link highlighting was implemented, the super class
 		// PageView has had sufficient information to be able to
 		// perform this method directly. Making that change would
@@ -500,8 +512,8 @@ public class PageView extends ViewGroup {
 		if (mLinks != null)
 			for (Link l: mLinks)
 				if (l.bounds.contains(docRelX, docRelY))
-					return l;
-		return null;
+					return hitLink(l);
+		return 0;
 	}
 
 	protected CancellableTaskDefinition<Void, Void> getDrawPageTask(final Bitmap bm, final int sizeX, final int sizeY,
