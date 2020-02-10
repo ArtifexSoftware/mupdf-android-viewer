@@ -22,6 +22,6 @@ run: install
 
 clean:
 	rm -rf .gradle build
-	rm -rf jni/.externalNativeBuild jni/.gradle jni/build jni/libmupdf/generated
+	rm -rf jni/.cxx jni/.externalNativeBuild jni/.gradle jni/build jni/libmupdf/generated
 	rm -rf lib/.gradle lib/build
 	rm -rf app/.gradle app/build
