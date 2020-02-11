@@ -1,5 +1,6 @@
 package com.artifex.mupdf.viewer;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -39,6 +41,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +56,7 @@ public class DocumentActivity extends Activity
 	enum TopBarMode {Main, Search, More};
 
 	private final int    OUTLINE_REQUEST=0;
+	private final int    PERMISSION_REQUEST=0;
 	private MuPDFCore    core;
 	private String       mFileName;
 	private ReaderView   mDocView;
@@ -154,6 +160,8 @@ public class DocumentActivity extends Activity
 				Uri uri = intent.getData();
 				System.out.println("URI to open is: " + uri);
 				if (uri.getScheme().equals("file")) {
+					if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
+						ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
 					String path = uri.getPath();
 					core = openFile(path);
 				} else {
