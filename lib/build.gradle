@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 group = 'com.artifex.mupdf'
-version = '1.17.0'
+version = '1.18.0'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
-		api 'com.artifex.mupdf:fitz:1.17.0'
+		api 'com.artifex.mupdf:fitz:1.18.0'
 }
 
 android {
