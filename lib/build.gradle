@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven'
 
 group = 'com.artifex.mupdf'
-version = '1.16.1'
+version = '1.17.0'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
-		api 'com.artifex.mupdf:fitz:1.16.1'
+		api 'com.artifex.mupdf:fitz:1.17.0'
 }
 
 android {
@@ -26,7 +26,7 @@ uploadArchives {
 			if (project.hasProperty('MAVEN_REPO')) {
 				repository(url: MAVEN_REPO)
 			} else {
-				repository(url: 'file://MAVEN')
+				repository(url: "file://${System.properties['user.home']}/MAVEN")
 			}
 			pom {
 				artifactId = 'viewer'
