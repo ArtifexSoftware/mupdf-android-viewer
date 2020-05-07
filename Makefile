@@ -20,6 +20,10 @@ sync: archive
 run: install
 	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
 
+tarball: release
+	cp app/build/outputs/apk/release/app-universal-release.apk \
+		mupdf-android-viewer-$(shell git describe --tags).apk
+
 clean:
 	rm -rf .gradle build
 	rm -rf jni/.cxx jni/.externalNativeBuild jni/.gradle jni/build jni/libmupdf/generated
