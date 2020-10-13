@@ -15,7 +15,7 @@ lint:
 archive: generate
 	./gradlew --warning-mode=all uploadArchives
 sync: archive
-	rsync -av $(HOME)/MAVEN/com/ ghostscript.com:/var/www/maven.ghostscript.com/com/
+	rsync -av --chmod=g+w --chown=:gs-priv $(HOME)/MAVEN/com/ ghostscript.com:/var/www/maven.ghostscript.com/com/
 
 run: install
 	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
