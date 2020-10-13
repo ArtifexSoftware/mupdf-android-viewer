@@ -22,7 +22,7 @@ run: install
 
 tarball: release
 	cp app/build/outputs/apk/release/app-universal-release.apk \
-		mupdf-android-viewer-$(shell git describe --tags).apk
+		mupdf-$(shell git describe --tags)-android-viewer.apk
 
 clean:
 	rm -rf .gradle build
