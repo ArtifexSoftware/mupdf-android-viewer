@@ -6,7 +6,7 @@
 		<activity
 			android:name=".DocumentActivity"
 			android:configChanges="orientation|screenSize|keyboardHidden"
-			>
+			android:exported="true">
 			<intent-filter>
 				<!-- match content and file requests with known mime-type -->
 				<action android:name="android.intent.action.VIEW" />

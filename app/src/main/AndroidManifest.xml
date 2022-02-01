@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.artifex.mupdf.viewer.app"
-	android:installLocation="auto"
-	>
-	<uses-permission
-		android:name="android.permission.READ_EXTERNAL_STORAGE"
-		/>
-	<application
-		android:label="MuPDF viewer"
-		android:icon="@drawable/ic_mupdf"
-		>
-		<activity
-			android:name=".LibraryActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden"
-			>
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-	</application>
+    package="com.artifex.mupdf.viewer.app"
+    android:installLocation="auto">
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/ic_mupdf"
+        android:label="MuPDF viewer">
+        <activity
+            android:name=".LibraryActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

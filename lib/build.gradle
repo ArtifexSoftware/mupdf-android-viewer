@@ -5,7 +5,7 @@ group = 'com.artifex.mupdf'
 version = '1.19.0'
 
 dependencies {
-	implementation 'androidx.appcompat:appcompat:1.1.+'
+	implementation 'androidx.appcompat:appcompat:1.4.1'
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
@@ -13,10 +13,10 @@ dependencies {
 }
 
 android {
-	compileSdkVersion 28
+	compileSdkVersion 31
 	defaultConfig {
 		minSdkVersion 16
-		targetSdkVersion 28
+		targetSdkVersion 31
 	}
 }
 
