@@ -36,6 +36,14 @@
 				/>
 
 			<ImageButton
+				android:id="@+id/toggleFlingButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@drawable/button"
+				android:src="@drawable/ic_change_circle_white_24dp"
+				/>
+
+			<ImageButton
 				android:id="@+id/linkButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"

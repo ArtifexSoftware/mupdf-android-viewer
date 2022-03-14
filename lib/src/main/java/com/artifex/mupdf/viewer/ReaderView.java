@@ -42,8 +42,6 @@ public class ReaderView
 	private static final float MIN_SCALE        = 1.0f;
 	private static final float MAX_SCALE        = 64.0f;
 
-	private static final boolean HORIZONTAL_SCROLLING = true;
-
 	private PageAdapter           mAdapter;
 	protected int               mCurrent;    // Adapter's index for the current view
 	private boolean           mResetLayout;
@@ -66,6 +64,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
+	private boolean       mHorizontalScrolling = true;
 
 	protected Stack<Integer> mHistory;
 
@@ -396,7 +395,7 @@ public class ReaderView
 			Rect bounds = getScrollBounds(v);
 			switch(directionOfTravel(velocityX, velocityY)) {
 			case MOVING_LEFT:
-				if (HORIZONTAL_SCROLLING && bounds.left >= 0) {
+				if (mHorizontalScrolling && bounds.left >= 0) {
 					// Fling off to the left bring next view onto screen
 					View vl = mChildViews.get(mCurrent+1);
 
@@ -407,7 +406,7 @@ public class ReaderView
 				}
 				break;
 			case MOVING_UP:
-				if (!HORIZONTAL_SCROLLING && bounds.top >= 0) {
+				if (!mHorizontalScrolling && bounds.top >= 0) {
 					// Fling off to the top bring next view onto screen
 					View vl = mChildViews.get(mCurrent+1);
 
@@ -418,7 +417,7 @@ public class ReaderView
 				}
 				break;
 			case MOVING_RIGHT:
-				if (HORIZONTAL_SCROLLING && bounds.right <= 0) {
+				if (mHorizontalScrolling && bounds.right <= 0) {
 					// Fling off to the right bring previous view onto screen
 					View vr = mChildViews.get(mCurrent-1);
 
@@ -429,7 +428,7 @@ public class ReaderView
 				}
 				break;
 			case MOVING_DOWN:
-				if (!HORIZONTAL_SCROLLING && bounds.bottom <= 0) {
+				if (!mHorizontalScrolling && bounds.bottom <= 0) {
 					// Fling off to the bottom bring previous view onto screen
 					View vr = mChildViews.get(mCurrent-1);
 
@@ -602,7 +601,7 @@ public class ReaderView
 				cvOffset = subScreenSizeOffset(cv);
 				// cv.getRight() may be out of date with the current scale
 				// so add left to the measured width for the correct position
-				if (HORIZONTAL_SCROLLING)
+				if (mHorizontalScrolling)
 					move = cv.getLeft() + cv.getMeasuredWidth() + cvOffset.x + GAP/2 + mXScroll < getWidth()/2;
 				else
 					move = cv.getTop() + cv.getMeasuredHeight() + cvOffset.y + GAP/2 + mYScroll < getHeight()/2;
@@ -617,7 +616,7 @@ public class ReaderView
 					onMoveToChild(mCurrent);
 				}
 
-				if (HORIZONTAL_SCROLLING)
+				if (mHorizontalScrolling)
 					move = cv.getLeft() - cvOffset.x - GAP/2 + mXScroll >= getWidth()/2;
 				else
 					move = cv.getTop() - cvOffset.y - GAP/2 + mYScroll >= getHeight()/2;
@@ -695,13 +694,13 @@ public class ReaderView
 			cvLeft += corr.x;
 			cvTop += corr.y;
 			cvBottom += corr.y;
-		} else if (HORIZONTAL_SCROLLING && cv.getMeasuredHeight() <= getHeight()) {
+		} else if (mHorizontalScrolling && cv.getMeasuredHeight() <= getHeight()) {
 			// When the current view is as small as the screen in height, clamp
 			// it vertically
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
 			cvTop += corr.y;
 			cvBottom += corr.y;
-		} else if (!HORIZONTAL_SCROLLING && cv.getMeasuredWidth() <= getWidth()) {
+		} else if (!mHorizontalScrolling && cv.getMeasuredWidth() <= getWidth()) {
 			// When the current view is as small as the screen in width, clamp
 			// it horizontally
 			Point corr = getCorrection(getScrollBounds(cvLeft, cvTop, cvRight, cvBottom));
@@ -714,7 +713,7 @@ public class ReaderView
 		if (mCurrent > 0) {
 			View lv = getOrCreateChild(mCurrent - 1);
 			Point leftOffset = subScreenSizeOffset(lv);
-			if (HORIZONTAL_SCROLLING)
+			if (mHorizontalScrolling)
 			{
 				int gap = leftOffset.x + GAP + cvOffset.x;
 				lv.layout(cvLeft - lv.getMeasuredWidth() - gap,
@@ -733,7 +732,7 @@ public class ReaderView
 		if (mCurrent + 1 < mAdapter.getCount()) {
 			View rv = getOrCreateChild(mCurrent + 1);
 			Point rightOffset = subScreenSizeOffset(rv);
-			if (HORIZONTAL_SCROLLING)
+			if (mHorizontalScrolling)
 			{
 				int gap = cvOffset.x + GAP + rightOffset.x;
 				rv.layout(cvRight + gap,
@@ -930,6 +929,10 @@ public class ReaderView
 			}
 		}
 		return true;
+	}
+
+	public void toggleFlingDirection() {
+		mHorizontalScrolling = !mHorizontalScrolling;
 	}
 
 	protected void onChildSetup(int i, View v) {
