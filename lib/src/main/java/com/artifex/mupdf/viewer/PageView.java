@@ -77,7 +77,7 @@ public class PageView extends ViewGroup {
 	private       ImageView mPatch;
 	private       Bitmap    mPatchBm;
 	private       CancellableAsyncTask<Void,Void> mDrawPatch;
-	private       Quad      mSearchBoxes[];
+	private       Quad      mSearchBoxes[][];
 	protected     Link      mLinks[];
 	private       View      mSearchView;
 	private       boolean   mIsBlank;
@@ -264,14 +264,16 @@ public class PageView extends ViewGroup {
 
 					if (!mIsBlank && mSearchBoxes != null) {
 						paint.setColor(HIGHLIGHT_COLOR);
-						for (Quad q : mSearchBoxes) {
-							Path path = new Path();
-							path.moveTo(q.ul_x * scale, q.ul_y * scale);
-							path.lineTo(q.ll_x * scale, q.ll_y * scale);
-							path.lineTo(q.lr_x * scale, q.lr_y * scale);
-							path.lineTo(q.ur_x * scale, q.ur_y * scale);
-							path.close();
-							canvas.drawPath(path, paint);
+						for (Quad[] searchBox : mSearchBoxes) {
+							for (Quad q : searchBox) {
+								Path path = new Path();
+								path.moveTo(q.ul_x * scale, q.ul_y * scale);
+								path.lineTo(q.ll_x * scale, q.ll_y * scale);
+								path.lineTo(q.lr_x * scale, q.lr_y * scale);
+								path.lineTo(q.ur_x * scale, q.ur_y * scale);
+								path.close();
+								canvas.drawPath(path, paint);
+							}
 						}
 					}
 
@@ -290,7 +292,7 @@ public class PageView extends ViewGroup {
 		requestLayout();
 	}
 
-	public void setSearchBoxes(Quad searchBoxes[]) {
+	public void setSearchBoxes(Quad searchBoxes[][]) {
 		mSearchBoxes = searchBoxes;
 		if (mSearchView != null)
 			mSearchView.invalidate();

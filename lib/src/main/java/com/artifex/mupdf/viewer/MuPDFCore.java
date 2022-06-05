@@ -155,7 +155,7 @@ public class MuPDFCore
 		return doc.pageNumberFromLocation(doc.resolveLink(link));
 	}
 
-	public synchronized Quad[] searchPage(int pageNum, String text) {
+	public synchronized Quad[][] searchPage(int pageNum, String text) {
 		gotoPage(pageNum);
 		return page.search(text);
 	}
