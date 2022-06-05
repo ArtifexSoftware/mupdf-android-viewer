@@ -1,7 +1,7 @@
 buildscript {
 	repositories {
-		jcenter()
 		google()
+		mavenCentral()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:3.5.0'
@@ -13,8 +13,8 @@ allprojects {
 		if (project.hasProperty('MAVEN_REPO')) {
 			maven { url MAVEN_REPO }
 		}
-		jcenter()
-		google()
 		maven { url 'https://maven.ghostscript.com/' }
+		google()
+		mavenCentral()
 	}
 }
