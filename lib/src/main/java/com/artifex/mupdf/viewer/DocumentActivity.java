@@ -22,6 +22,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem.OnMenuItemClickListener;
@@ -39,6 +40,7 @@ import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import androidx.core.app.ActivityCompat;
@@ -48,24 +50,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class DocumentActivity extends Activity
 {
+	private final String APP = "MuPDF";
+
 	/* The core rendering instance */
 	enum TopBarMode {Main, Search, More};
 
 	private final int    OUTLINE_REQUEST=0;
-	private final int    PERMISSION_REQUEST=0;
 	private MuPDFCore    core;
-	private String       mFileName;
-	private String       mFileKey;
+	private String       mDocTitle;
+	private String       mDocKey;
 	private ReaderView   mDocView;
 	private View         mButtonsView;
 	private boolean      mButtonsVisible;
 	private EditText     mPasswordView;
-	private TextView     mFilenameView;
+	private TextView     mDocNameView;
 	private SeekBar      mPageSlider;
 	private int          mPageSliderRes;
 	private TextView     mPageNumberView;
@@ -101,38 +105,12 @@ public class DocumentActivity extends Activity
 		return builder.toString();
 	}
 
-	private MuPDFCore openFile(String path)
-	{
-		int lastSlashPos = path.lastIndexOf('/');
-		mFileName = new String(lastSlashPos == -1
-					? path
-					: path.substring(lastSlashPos+1));
-		System.out.println("Trying to open " + path);
-		try
-		{
-			mFileKey = mFileName;
-			core = new MuPDFCore(path);
-		}
-		catch (Exception e)
-		{
-			System.out.println(e);
-			return null;
-		}
-		catch (java.lang.OutOfMemoryError e)
-		{
-			//  out of memory is not an Exception, so we catch it separately.
-			System.out.println(e);
-			return null;
-		}
-		return core;
-	}
-
 	private MuPDFCore openBuffer(byte buffer[], String magic)
 	{
 		System.out.println("Trying to open byte buffer");
 		try
 		{
-			mFileKey = toHex(MessageDigest.getInstance("MD5").digest(buffer));
+			mDocKey = toHex(MessageDigest.getInstance("MD5").digest(buffer));
 			core = new MuPDFCore(buffer, magic);
 		}
 		catch (Exception e)
@@ -159,8 +137,8 @@ public class DocumentActivity extends Activity
 		mAlertBuilder = new AlertDialog.Builder(this);
 
 		if (core == null) {
-			if (savedInstanceState != null && savedInstanceState.containsKey("FileName")) {
-				mFileName = savedInstanceState.getString("FileName");
+			if (savedInstanceState != null && savedInstanceState.containsKey("DocTitle")) {
+				mDocTitle = savedInstanceState.getString("DocTitle");
 			}
 		}
 		if (core == null) {
@@ -169,41 +147,45 @@ public class DocumentActivity extends Activity
 
 			if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 				Uri uri = intent.getData();
-				System.out.println("URI to open is: " + uri);
-				if (uri.getScheme().equals("file")) {
-					if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED)
-						ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST);
-					String path = uri.getPath();
-					core = openFile(path);
-				} else {
-					try {
-						InputStream is = getContentResolver().openInputStream(uri);
-						int len;
-						ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
-						byte[] data = new byte[16384];
-						while ((len = is.read(data, 0, data.length)) != -1) {
-							bufferStream.write(data, 0, len);
-						}
-						bufferStream.flush();
-						buffer = bufferStream.toByteArray();
-						is.close();
-					}
-					catch (IOException e) {
-						String reason = e.toString();
-						Resources res = getResources();
-						AlertDialog alert = mAlertBuilder.create();
-						setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
-						alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
-										finish();
-									}
-								});
-						alert.show();
-						return;
-					}
-					core = openBuffer(buffer, intent.getType());
+				String mimetype = intent.getType();
+				if (mimetype == null || mimetype.equals("application/octet-stream"))
+					mimetype = uri.getLastPathSegment();
+
+				mDocKey = uri.toString();
+				mDocTitle = uri.getLastPathSegment();
+
+				Log.i(APP, "URI " + uri.toString());
+				Log.i(APP, "MAGIC " + mimetype);
+				Log.i(APP, "TITLE " + mDocTitle);
+
+				try {
+					InputStream stm = getContentResolver().openInputStream(uri);
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					byte[] buf = new byte[16384];
+					int n;
+					while ((n = stm.read(buf)) != -1)
+						out.write(buf, 0, n);
+					out.flush();
+					buffer = out.toByteArray();
+					mDocKey = toHex(MessageDigest.getInstance("MD5").digest(buffer));
+					Log.i(APP, "BUFFER " + buffer.length + " " + mDocKey);
+
+					core = openBuffer(buffer, mimetype);
+				} catch (IOException | NoSuchAlgorithmException x) {
+					String reason = x.toString();
+					Resources res = getResources();
+					AlertDialog alert = mAlertBuilder.create();
+					setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
+					alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int which) {
+									finish();
+								}
+							});
+					alert.show();
+					return;
 				}
+
 				SearchTaskResult.set(null);
 			}
 			if (core != null && core.needsPassword()) {
@@ -343,9 +325,9 @@ public class DocumentActivity extends Activity
 		// Set the file-name text
 		String docTitle = core.getTitle();
 		if (docTitle != null)
-			mFilenameView.setText(docTitle);
+			mDocNameView.setText(docTitle);
 		else
-			mFilenameView.setText(mFileName);
+			mDocNameView.setText(mDocTitle);
 
 		// Activate the seekbar
 		mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -488,7 +470,7 @@ public class DocumentActivity extends Activity
 
 		// Reenstate last state if it was recorded
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-		mDocView.setDisplayedViewIndex(prefs.getInt("page"+mFileKey, 0));
+		mDocView.setDisplayedViewIndex(prefs.getInt("page"+mDocKey, 0));
 
 		if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
 			showButtons();
@@ -521,9 +503,9 @@ public class DocumentActivity extends Activity
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 
-		if (mFileKey != null && mDocView != null) {
-			if (mFileName != null)
-				outState.putString("FileName", mFileName);
+		if (mDocKey != null && mDocView != null) {
+			if (mDocTitle != null)
+				outState.putString("DocTitle", mDocTitle);
 
 			// Store current page in the prefs against the file name,
 			// so that we can pick it up each time the file is loaded
@@ -531,7 +513,7 @@ public class DocumentActivity extends Activity
 			// so it can go in the bundle
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mFileKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
 			edit.apply();
 		}
 
@@ -549,10 +531,10 @@ public class DocumentActivity extends Activity
 		if (mSearchTask != null)
 			mSearchTask.stop();
 
-		if (mFileKey != null && mDocView != null) {
+		if (mDocKey != null && mDocView != null) {
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mFileKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
 			edit.apply();
 		}
 	}
@@ -687,7 +669,7 @@ public class DocumentActivity extends Activity
 
 	private void makeButtonsView() {
 		mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
-		mFilenameView = (TextView)mButtonsView.findViewById(R.id.docNameText);
+		mDocNameView = (TextView)mButtonsView.findViewById(R.id.docNameText);
 		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);

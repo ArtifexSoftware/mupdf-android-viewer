@@ -3,16 +3,13 @@
 	package="com.artifex.mupdf.viewer.app"
 	android:installLocation="auto"
 	>
-	<uses-permission
-		android:name="android.permission.READ_EXTERNAL_STORAGE"
-		/>
 	<application
 		android:label="MuPDF viewer"
 		android:icon="@drawable/ic_mupdf"
 		>
 		<activity
 			android:name=".LibraryActivity"
-			android:configChanges="orientation|screenSize|keyboardHidden"
+			android:exported="false"
 			>
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
