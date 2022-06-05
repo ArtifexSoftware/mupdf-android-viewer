@@ -1,5 +1,7 @@
 package com.artifex.mupdf.viewer;
 
+import com.artifex.mupdf.fitz.SeekableInputStream;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -18,6 +20,7 @@ import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -46,11 +49,7 @@ import android.widget.ViewAnimator;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -105,17 +104,15 @@ public class DocumentActivity extends Activity
 		return builder.toString();
 	}
 
-	private MuPDFCore openBuffer(byte buffer[], String magic)
+	private MuPDFCore openStream(SeekableInputStream stm, String magic)
 	{
-		System.out.println("Trying to open byte buffer");
 		try
 		{
-			mDocKey = toHex(MessageDigest.getInstance("MD5").digest(buffer));
-			core = new MuPDFCore(buffer, magic);
+			core = new MuPDFCore(stm, magic);
 		}
 		catch (Exception e)
 		{
-			System.out.println(e);
+			Log.e(APP, "Error opening document: " + e);
 			return null;
 		}
 		return core;
@@ -143,35 +140,37 @@ public class DocumentActivity extends Activity
 		}
 		if (core == null) {
 			Intent intent = getIntent();
-			byte buffer[] = null;
+			SeekableInputStream file;
 
 			if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 				Uri uri = intent.getData();
-				String mimetype = intent.getType();
-				if (mimetype == null || mimetype.equals("application/octet-stream"))
-					mimetype = uri.getLastPathSegment();
+				String mimetype = getIntent().getType();
 
 				mDocKey = uri.toString();
-				mDocTitle = uri.getLastPathSegment();
+				Cursor cursor = getContentResolver().query(uri, null, null, null);
+				cursor.moveToFirst();
+				mDocTitle = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+				long size = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
+				if (size == 0)
+					size = -1;
 
-				Log.i(APP, "URI " + uri.toString());
-				Log.i(APP, "MAGIC " + mimetype);
-				Log.i(APP, "TITLE " + mDocTitle);
+				Log.i(APP, "OPEN URI " + uri.toString());
+				Log.i(APP, "  NAME " + mDocTitle);
+				Log.i(APP, "  SIZE " + size);
+
+				Log.i(APP, "  MAGIC (Intent) " + mimetype);
+				if (mimetype == null || mimetype.equals("application/octet-stream")) {
+					mimetype = getContentResolver().getType(uri);
+					Log.i(APP, "  MAGIC (Resolved) " + mimetype);
+				}
+				if (mimetype == null || mimetype.equals("application/octet-stream")) {
+					mimetype = mDocTitle;
+					Log.i(APP, "  MAGIC (Filename) " + mimetype);
+				}
 
 				try {
-					InputStream stm = getContentResolver().openInputStream(uri);
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					byte[] buf = new byte[16384];
-					int n;
-					while ((n = stm.read(buf)) != -1)
-						out.write(buf, 0, n);
-					out.flush();
-					buffer = out.toByteArray();
-					mDocKey = toHex(MessageDigest.getInstance("MD5").digest(buffer));
-					Log.i(APP, "BUFFER " + buffer.length + " " + mDocKey);
-
-					core = openBuffer(buffer, mimetype);
-				} catch (IOException | NoSuchAlgorithmException x) {
+					file = new SeekableInputStreamWrapper(getContentResolver().openInputStream(uri), size);
+				} catch (IOException x) {
 					String reason = x.toString();
 					Resources res = getResources();
 					AlertDialog alert = mAlertBuilder.create();
@@ -186,6 +185,7 @@ public class DocumentActivity extends Activity
 					return;
 				}
 
+				core = openStream(file, mimetype);
 				SearchTaskResult.set(null);
 			}
 			if (core != null && core.needsPassword()) {

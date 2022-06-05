@@ -10,6 +10,7 @@ import com.artifex.mupdf.fitz.Page;
 import com.artifex.mupdf.fitz.Quad;
 import com.artifex.mupdf.fitz.Rect;
 import com.artifex.mupdf.fitz.RectI;
+import com.artifex.mupdf.fitz.SeekableInputStream;
 import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 
 import android.content.Context;
@@ -35,8 +36,8 @@ public class MuPDFCore
 	private int layoutH = 504;
 	private int layoutEM = 10;
 
-	public MuPDFCore(byte buffer[], String magic) {
-		doc = Document.openDocument(buffer, magic);
+	public MuPDFCore(SeekableInputStream stm, String magic) {
+		doc = Document.openDocument(stm, magic);
 		doc.layout(layoutW, layoutH, layoutEM);
 		pageCount = doc.countPages();
 		resolution = 160;
