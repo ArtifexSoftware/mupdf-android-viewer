@@ -147,7 +147,7 @@ public class DocumentActivity extends Activity
 				String mimetype = getIntent().getType();
 
 				mDocKey = uri.toString();
-				Cursor cursor = getContentResolver().query(uri, null, null, null);
+				Cursor cursor = getContentResolver().query(uri, null, null, null, null);
 				cursor.moveToFirst();
 				mDocTitle = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
 				long size = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
