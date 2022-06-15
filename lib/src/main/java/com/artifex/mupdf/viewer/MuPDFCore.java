@@ -36,12 +36,20 @@ public class MuPDFCore
 	private int layoutH = 504;
 	private int layoutEM = 10;
 
-	public MuPDFCore(SeekableInputStream stm, String magic) {
-		doc = Document.openDocument(stm, magic);
+	private MuPDFCore(Document doc) {
+		this.doc = doc;
 		doc.layout(layoutW, layoutH, layoutEM);
 		pageCount = doc.countPages();
 		resolution = 160;
 		currentPage = -1;
+	}
+
+	public MuPDFCore(byte buffer[], String magic) {
+		this(Document.openDocument(buffer, magic));
+	}
+
+	public MuPDFCore(SeekableInputStream stm, String magic) {
+		this(Document.openDocument(stm, magic));
 	}
 
 	public String getTitle() {

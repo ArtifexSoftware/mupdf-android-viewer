@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.artifex.mupdf.viewer"
 	>
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 	<application>
 		<activity
 			android:name=".DocumentActivity"
@@ -12,6 +13,7 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.BROWSABLE" />
 				<category android:name="android.intent.category.DEFAULT" />
+				<!-- list the mime-types we know about -->
 				<data android:mimeType="application/pdf" />
 				<data android:mimeType="application/vnd.ms-xpsdocument" />
 				<data android:mimeType="application/oxps" />

@@ -5,6 +5,7 @@ import com.artifex.mupdf.fitz.SeekableInputStream;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface;
@@ -49,7 +50,9 @@ import android.widget.ViewAnimator;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -104,6 +107,20 @@ public class DocumentActivity extends Activity
 		return builder.toString();
 	}
 
+        private MuPDFCore openBuffer(byte buffer[], String magic)
+        {
+                try
+                {
+                        core = new MuPDFCore(buffer, magic);
+                }
+                catch (Exception e)
+                {
+                        Log.e(APP, "Error opening document buffer: " + e);
+                        return null;
+                }
+                return core;
+	}
+
 	private MuPDFCore openStream(SeekableInputStream stm, String magic)
 	{
 		try
@@ -112,10 +129,52 @@ public class DocumentActivity extends Activity
 		}
 		catch (Exception e)
 		{
-			Log.e(APP, "Error opening document: " + e);
+			Log.e(APP, "Error opening document stream: " + e);
 			return null;
 		}
 		return core;
+	}
+
+	private MuPDFCore openCore(Uri uri, long size, String mimetype) throws IOException {
+		ContentResolver cr = getContentResolver();
+
+		Log.i(APP, "Opening document " + uri);
+
+		InputStream is = cr.openInputStream(uri);
+		byte[] buf = null;
+		int used = -1;
+		try {
+			final int limit = 8 * 1024 * 1024;
+			if (size < 0) { // size is unknown
+				buf = new byte[limit];
+				used = is.read(buf);
+				boolean atEOF = is.read() == -1;
+				if (used < 0 || (used == limit && !atEOF)) // no or partial data
+					buf = null;
+			} else if (size <= limit) { // size is known and below limit
+				buf = new byte[(int) size];
+				used = is.read(buf);
+				if (used < 0 || used < size) // no or partial data
+					buf = null;
+			}
+			if (buf != null && buf.length != used) {
+				byte[] newbuf = new byte[used];
+				System.arraycopy(buf, 0, newbuf, 0, used);
+				buf = newbuf;
+			}
+		} catch (OutOfMemoryError e) {
+			buf = null;
+		} finally {
+			is.close();
+		}
+
+		if (buf != null) {
+			Log.i(APP, "  Opening document from memory buffer of size " + buf.length);
+			return openBuffer(buf, mimetype);
+		} else {
+			Log.i(APP, "  Opening document from stream");
+			return openStream(new ContentInputStream(cr, uri, size), mimetype);
+		}
 	}
 
 	/** Called when the activity is first created. */
@@ -147,18 +206,29 @@ public class DocumentActivity extends Activity
 				String mimetype = getIntent().getType();
 
 				mDocKey = uri.toString();
-				Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-				cursor.moveToFirst();
-				mDocTitle = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-				long size = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
-				if (size == 0)
-					size = -1;
 
 				Log.i(APP, "OPEN URI " + uri.toString());
+				Log.i(APP, "  MAGIC (Intent) " + mimetype);
+
+				mDocTitle = null;
+				long size = -1;
+				Cursor cursor;
+
+				cursor = getContentResolver().query(uri, null, null, null, null);
+				if (cursor != null && cursor.moveToFirst()) {
+					try {
+						mDocTitle = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+						size = cursor.getLong(cursor.getColumnIndex(OpenableColumns.SIZE));
+						if (size == 0)
+							size = -1;
+					} finally {
+						cursor.close();
+					}
+				}
+
 				Log.i(APP, "  NAME " + mDocTitle);
 				Log.i(APP, "  SIZE " + size);
 
-				Log.i(APP, "  MAGIC (Intent) " + mimetype);
 				if (mimetype == null || mimetype.equals("application/octet-stream")) {
 					mimetype = getContentResolver().getType(uri);
 					Log.i(APP, "  MAGIC (Resolved) " + mimetype);
@@ -169,8 +239,10 @@ public class DocumentActivity extends Activity
 				}
 
 				try {
-					file = new SeekableInputStreamWrapper(getContentResolver().openInputStream(uri), size);
-				} catch (IOException x) {
+					core = openCore(uri, size, mimetype);
+					SearchTaskResult.set(null);
+				} catch (Exception x) {
+					Log.e(APP, Log.getStackTraceString(x));
 					String reason = x.toString();
 					Resources res = getResources();
 					AlertDialog alert = mAlertBuilder.create();
@@ -184,9 +256,6 @@ public class DocumentActivity extends Activity
 					alert.show();
 					return;
 				}
-
-				core = openStream(file, mimetype);
-				SearchTaskResult.set(null);
 			}
 			if (core != null && core.needsPassword()) {
 				requestPassword(savedInstanceState);
