@@ -50,6 +50,8 @@ public class LibraryActivity extends Activity
 				startActivity(intent);
 			}
 			finish();
+		} else if (request == FILE_REQUEST && result == Activity.RESULT_CANCELED) {
+			finish();
 		}
 	}
 }
