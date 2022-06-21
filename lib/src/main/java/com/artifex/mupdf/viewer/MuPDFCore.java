@@ -130,7 +130,7 @@ public class MuPDFCore
 			Cookie cookie) {
 		gotoPage(pageNum);
 
-		if (displayList == null)
+		if (displayList == null && page != null)
 			displayList = page.toDisplayList();
 
 		float zoom = resolution / 72;
@@ -156,7 +156,7 @@ public class MuPDFCore
 
 	public synchronized Link[] getPageLinks(int pageNum) {
 		gotoPage(pageNum);
-		return page.getLinks();
+		return page != null ? page.getLinks() : null;
 	}
 
 	public synchronized int resolveLink(Link link) {
