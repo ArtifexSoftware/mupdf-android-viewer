@@ -48,6 +48,7 @@ public class LibraryActivity extends Activity
 				intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 				intent.setAction(Intent.ACTION_VIEW);
 				intent.setDataAndType(data.getData(), data.getType());
+				intent.putExtra(getComponentName().getPackageName() + ".ReturnToLibraryActivity", 1);
 				startActivity(intent);
 			}
 			finish();

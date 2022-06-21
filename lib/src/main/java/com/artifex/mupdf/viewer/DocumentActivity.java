@@ -91,6 +91,7 @@ public class DocumentActivity extends Activity
 	private boolean mAlertsActive= false;
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
+	private boolean mReturnToLibraryActivity = false;
 
 	protected int mDisplayDPI;
 	private int mLayoutEM = 10;
@@ -200,6 +201,8 @@ public class DocumentActivity extends Activity
 		if (core == null) {
 			Intent intent = getIntent();
 			SeekableInputStream file;
+
+			mReturnToLibraryActivity = intent.getIntExtra(getComponentName().getPackageName() + ".ReturnToLibraryActivity", 0) != 0;
 
 			if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 				Uri uri = intent.getData();
@@ -811,8 +814,10 @@ public class DocumentActivity extends Activity
 	public void onBackPressed() {
 		if (mDocView == null || !mDocView.popHistory()) {
 			super.onBackPressed();
-			Intent intent = getPackageManager().getLaunchIntentForPackage(getComponentName().getPackageName());
-			startActivity(intent);
+			if (mReturnToLibraryActivity) {
+				Intent intent = getPackageManager().getLaunchIntentForPackage(getComponentName().getPackageName());
+				startActivity(intent);
+			}
 		}
 	}
 }
