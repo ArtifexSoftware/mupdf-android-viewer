@@ -242,7 +242,6 @@ public class DocumentActivity extends Activity
 					core = openCore(uri, size, mimetype);
 					SearchTaskResult.set(null);
 				} catch (Exception x) {
-					Log.e(APP, Log.getStackTraceString(x));
 					String reason = x.toString();
 					Resources res = getResources();
 					AlertDialog alert = mAlertBuilder.create();
