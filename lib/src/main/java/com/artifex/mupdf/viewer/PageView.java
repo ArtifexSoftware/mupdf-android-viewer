@@ -408,7 +408,8 @@ public class PageView extends ViewGroup {
 				mPatch = new OpaqueImageView(mContext);
 				mPatch.setScaleType(ImageView.ScaleType.MATRIX);
 				addView(mPatch);
-				mSearchView.bringToFront();
+				if (mSearchView != null)
+					mSearchView.bringToFront();
 			}
 
 			CancellableTaskDefinition<Void, Void> task;
