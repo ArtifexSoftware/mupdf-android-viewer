@@ -215,11 +215,11 @@ public class DocumentActivity extends Activity
 
 				mDocTitle = null;
 				long size = -1;
-				Cursor cursor;
+				Cursor cursor = null;
 
-				cursor = getContentResolver().query(uri, null, null, null, null);
-				if (cursor != null && cursor.moveToFirst()) {
-					try {
+				try {
+					cursor = getContentResolver().query(uri, null, null, null, null);
+					if (cursor != null && cursor.moveToFirst()) {
 						int idx;
 
 						idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
@@ -232,9 +232,13 @@ public class DocumentActivity extends Activity
 
 						if (size == 0)
 							size = -1;
-					} finally {
-						cursor.close();
 					}
+				} catch (Exception x) {
+					// Ignore any exception and depend on default values for title
+					// and size (unless one was decoded
+				} finally {
+					if (cursor != null)
+						cursor.close();
 				}
 
 				Log.i(APP, "  NAME " + mDocTitle);
