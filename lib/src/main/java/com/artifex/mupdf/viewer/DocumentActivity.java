@@ -178,6 +178,19 @@ public class DocumentActivity extends Activity
 		}
 	}
 
+	private void showCannotOpenDialog(String reason) {
+		Resources res = getResources();
+		AlertDialog alert = mAlertBuilder.create();
+		setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
+		alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				});
+		alert.show();
+	}
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(final Bundle savedInstanceState)
@@ -257,17 +270,7 @@ public class DocumentActivity extends Activity
 					core = openCore(uri, size, mimetype);
 					SearchTaskResult.set(null);
 				} catch (Exception x) {
-					String reason = x.toString();
-					Resources res = getResources();
-					AlertDialog alert = mAlertBuilder.create();
-					setTitle(String.format(Locale.ROOT, res.getString(R.string.cannot_open_document_Reason), reason));
-					alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									finish();
-								}
-							});
-					alert.show();
+					showCannotOpenDialog(x.toString());
 					return;
 				}
 			}
