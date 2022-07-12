@@ -150,9 +150,12 @@ public class MuPDFCore
 		ctm.scale(xscale, yscale);
 
 		AndroidDrawDevice dev = new AndroidDrawDevice(bm, patchX, patchY);
-		displayList.run(dev, ctm, cookie);
-		dev.close();
-		dev.destroy();
+		try {
+			displayList.run(dev, ctm, cookie);
+			dev.close();
+		} finally {
+			dev.destroy();
+		}
 	}
 
 	public synchronized void updatePage(Bitmap bm, int pageNum,
