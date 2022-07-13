@@ -916,6 +916,8 @@ public class ReaderView
 				if (page > 0) {
 					pushHistory();
 					setDisplayedViewIndex(page);
+				} else {
+					onTapMainDocArea();
 				}
 			} else if (e.getX() < tapPageMargin) {
 				smartMoveBackwards();
