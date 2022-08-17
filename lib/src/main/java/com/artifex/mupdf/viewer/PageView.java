@@ -23,6 +23,7 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.FileUriExposedException;
@@ -87,6 +88,8 @@ public class PageView extends ViewGroup {
 	private       boolean   mIsBlank;
 	private       boolean   mHighlightLinks;
 
+	private       ImageView mErrorIndicator;
+
 	private       ProgressBar mBusyIndicator;
 	private final Handler   mHandler = new Handler();
 
@@ -139,6 +142,8 @@ public class PageView extends ViewGroup {
 
 		mSearchBoxes = null;
 		mLinks = null;
+
+		clearRenderError();
 	}
 
 	public void releaseResources() {
@@ -148,6 +153,7 @@ public class PageView extends ViewGroup {
 			removeView(mBusyIndicator);
 			mBusyIndicator = null;
 		}
+		clearRenderError();
 	}
 
 	public void releaseBitmaps() {
@@ -177,6 +183,44 @@ public class PageView extends ViewGroup {
 		setBackgroundColor(BACKGROUND_COLOR);
 	}
 
+	protected void clearRenderError() {
+		if (mErrorIndicator == null)
+			return;
+
+		removeView(mErrorIndicator);
+		mErrorIndicator = null;
+		invalidate();
+	}
+
+	protected void setRenderError(String why) {
+
+		int page = mPageNumber;
+		reinit();
+		mPageNumber = page;
+
+		if (mBusyIndicator != null) {
+			removeView(mBusyIndicator);
+			mBusyIndicator = null;
+		}
+		if (mSearchView != null) {
+			removeView(mSearchView);
+			mSearchView = null;
+		}
+
+		if (mErrorIndicator == null) {
+			mErrorIndicator = new OpaqueImageView(mContext);
+			mErrorIndicator.setScaleType(ImageView.ScaleType.CENTER);
+			addView(mErrorIndicator);
+			Drawable mErrorIcon = getResources().getDrawable(R.drawable.ic_error_red_24dp);
+			mErrorIndicator.setImageDrawable(mErrorIcon);
+			mErrorIndicator.setBackgroundColor(BACKGROUND_COLOR);
+		}
+
+		setBackgroundColor(Color.TRANSPARENT);
+		mErrorIndicator.bringToFront();
+		mErrorIndicator.invalidate();
+	}
+
 	public void setPage(int page, PointF size) {
 		// Cancel pending render task
 		if (mDrawEntire != null) {
@@ -190,10 +234,10 @@ public class PageView extends ViewGroup {
 			mSearchView.invalidate();
 
 		mPageNumber = page;
-		if (mEntire == null) {
-			mEntire = new OpaqueImageView(mContext);
-			mEntire.setScaleType(ImageView.ScaleType.MATRIX);
-			addView(mEntire);
+
+		if (size == null) {
+			setRenderError("Error loading page");
+			size = new PointF(612, 792);
 		}
 
 		// Calculate scaled size that fits within the screen limits
@@ -201,6 +245,15 @@ public class PageView extends ViewGroup {
 		mSourceScale = Math.min(mParentSize.x/size.x, mParentSize.y/size.y);
 		Point newSize = new Point((int)(size.x*mSourceScale), (int)(size.y*mSourceScale));
 		mSize = newSize;
+
+		if (mErrorIndicator != null)
+			return;
+
+		if (mEntire == null) {
+			mEntire = new OpaqueImageView(mContext);
+			mEntire.setScaleType(ImageView.ScaleType.MATRIX);
+			addView(mEntire);
+		}
 
 		mEntire.setImageBitmap(null);
 		mEntire.invalidate();
@@ -247,8 +300,13 @@ public class PageView extends ViewGroup {
 			public void onPostExecute(Boolean result) {
 				removeView(mBusyIndicator);
 				mBusyIndicator = null;
-				mEntire.setImageBitmap(mEntireBm);
-				mEntire.invalidate();
+				if (result.booleanValue()) {
+					clearRenderError();
+					mEntire.setImageBitmap(mEntireBm);
+					mEntire.invalidate();
+				} else {
+					setRenderError("Error rendering page");
+				}
 				setBackgroundColor(Color.TRANSPARENT);
 			}
 		};
@@ -331,6 +389,10 @@ public class PageView extends ViewGroup {
 			int limit = Math.min(mParentSize.x, mParentSize.y)/2;
 			mBusyIndicator.measure(View.MeasureSpec.AT_MOST | limit, View.MeasureSpec.AT_MOST | limit);
 		}
+		if (mErrorIndicator != null) {
+			int limit = Math.min(mParentSize.x, mParentSize.y)/2;
+			mErrorIndicator.measure(View.MeasureSpec.AT_MOST | limit, View.MeasureSpec.AT_MOST | limit);
+		}
 	}
 
 	@Override
@@ -371,9 +433,23 @@ public class PageView extends ViewGroup {
 
 			mBusyIndicator.layout((w-bw)/2, (h-bh)/2, (w+bw)/2, (h+bh)/2);
 		}
+
+		if (mErrorIndicator != null) {
+			int bw = (int) (8.5 * mErrorIndicator.getMeasuredWidth());
+			int bh = (int) (11 * mErrorIndicator.getMeasuredHeight());
+			mErrorIndicator.layout((w-bw)/2, (h-bh)/2, (w+bw)/2, (h+bh)/2);
+		}
 	}
 
 	public void updateHq(boolean update) {
+		if (mErrorIndicator != null) {
+			if (mPatch != null) {
+				mPatch.setImageBitmap(null);
+				mPatch.invalidate();
+			}
+			return;
+		}
+
 		Rect viewArea = new Rect(getLeft(),getTop(),getRight(),getBottom());
 		if (viewArea.width() == mSize.x || viewArea.height() == mSize.y) {
 			// If the viewArea's size matches the unzoomed size, there is no need for an hq patch
@@ -429,14 +505,19 @@ public class PageView extends ViewGroup {
 			mDrawPatch = new CancellableAsyncTask<Void, Boolean>(task) {
 
 				public void onPostExecute(Boolean result) {
-					mPatchViewSize = patchViewSize;
-					mPatchArea = patchArea;
-					mPatch.setImageBitmap(mPatchBm);
-					mPatch.invalidate();
-					//requestLayout();
-					// Calling requestLayout here doesn't lead to a later call to layout. No idea
-					// why, but apparently others have run into the problem.
-					mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
+					if (result.booleanValue()) {
+						mPatchViewSize = patchViewSize;
+						mPatchArea = patchArea;
+						clearRenderError();
+						mPatch.setImageBitmap(mPatchBm);
+						mPatch.invalidate();
+						//requestLayout();
+						// Calling requestLayout here doesn't lead to a later call to layout. No idea
+						// why, but apparently others have run into the problem.
+						mPatch.layout(mPatchArea.left, mPatchArea.top, mPatchArea.right, mPatchArea.bottom);
+					} else {
+						setRenderError("Error rendering patch");
+					}
 				}
 			};
 
@@ -460,8 +541,13 @@ public class PageView extends ViewGroup {
 		mDrawEntire = new CancellableAsyncTask<Void, Boolean>(getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
 
 			public void onPostExecute(Boolean result) {
-				mEntire.setImageBitmap(mEntireBm);
-				mEntire.invalidate();
+				if (result.booleanValue()) {
+					clearRenderError();
+					mEntire.setImageBitmap(mEntireBm);
+					mEntire.invalidate();
+				} else {
+					setRenderError("Error updating page");
+				}
 			}
 		};
 
