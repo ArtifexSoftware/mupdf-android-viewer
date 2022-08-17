@@ -74,13 +74,13 @@ public class PageView extends ViewGroup {
 	private       Bitmap    mEntireBm;
 	private       Matrix    mEntireMat;
 	private       AsyncTask<Void,Void,Link[]> mGetLinkInfo;
-	private       CancellableAsyncTask<Void, Void> mDrawEntire;
+	private       CancellableAsyncTask<Void, Boolean> mDrawEntire;
 
 	private       Point     mPatchViewSize; // View size on the basis of which the patch was created
 	private       Rect      mPatchArea;
 	private       ImageView mPatch;
 	private       Bitmap    mPatchBm;
-	private       CancellableAsyncTask<Void,Void> mDrawPatch;
+	private       CancellableAsyncTask<Void, Boolean> mDrawPatch;
 	private       Quad      mSearchBoxes[][];
 	protected     Link      mLinks[];
 	private       View      mSearchView;
@@ -221,7 +221,7 @@ public class PageView extends ViewGroup {
 		mGetLinkInfo.execute();
 
 		// Render the page in the background
-		mDrawEntire = new CancellableAsyncTask<Void, Void>(getDrawPageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
+		mDrawEntire = new CancellableAsyncTask<Void, Boolean>(getDrawPageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
 
 			@Override
 			public void onPreExecute() {
@@ -244,13 +244,12 @@ public class PageView extends ViewGroup {
 			}
 
 			@Override
-			public void onPostExecute(Void result) {
+			public void onPostExecute(Boolean result) {
 				removeView(mBusyIndicator);
 				mBusyIndicator = null;
 				mEntire.setImageBitmap(mEntireBm);
 				mEntire.invalidate();
 				setBackgroundColor(Color.TRANSPARENT);
-
 			}
 		};
 
@@ -416,7 +415,7 @@ public class PageView extends ViewGroup {
 					mSearchView.bringToFront();
 			}
 
-			CancellableTaskDefinition<Void, Void> task;
+			CancellableTaskDefinition<Void, Boolean> task;
 
 			if (completeRedraw)
 				task = getDrawPageTask(mPatchBm, patchViewSize.x, patchViewSize.y,
@@ -427,9 +426,9 @@ public class PageView extends ViewGroup {
 						patchArea.left, patchArea.top,
 						patchArea.width(), patchArea.height());
 
-			mDrawPatch = new CancellableAsyncTask<Void,Void>(task) {
+			mDrawPatch = new CancellableAsyncTask<Void, Boolean>(task) {
 
-				public void onPostExecute(Void result) {
+				public void onPostExecute(Boolean result) {
 					mPatchViewSize = patchViewSize;
 					mPatchArea = patchArea;
 					mPatch.setImageBitmap(mPatchBm);
@@ -458,9 +457,9 @@ public class PageView extends ViewGroup {
 		}
 
 		// Render the page in the background
-		mDrawEntire = new CancellableAsyncTask<Void, Void>(getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
+		mDrawEntire = new CancellableAsyncTask<Void, Boolean>(getUpdatePageTask(mEntireBm, mSize.x, mSize.y, 0, 0, mSize.x, mSize.y)) {
 
-			public void onPostExecute(Void result) {
+			public void onPostExecute(Boolean result) {
 				mEntire.setImageBitmap(mEntireBm);
 				mEntire.invalidate();
 			}
@@ -531,41 +530,53 @@ public class PageView extends ViewGroup {
 		return 0;
 	}
 
-	protected CancellableTaskDefinition<Void, Void> getDrawPageTask(final Bitmap bm, final int sizeX, final int sizeY,
+	protected CancellableTaskDefinition<Void, Boolean> getDrawPageTask(final Bitmap bm, final int sizeX, final int sizeY,
 			final int patchX, final int patchY, final int patchWidth, final int patchHeight) {
-		return new MuPDFCancellableTaskDefinition<Void, Void>() {
+		return new MuPDFCancellableTaskDefinition<Void, Boolean>() {
 			@Override
-			public Void doInBackground(Cookie cookie, Void ... params) {
+			public Boolean doInBackground(Cookie cookie, Void ... params) {
 				// Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
 				// is not incremented when drawing.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&
 						Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 					bm.eraseColor(0);
-				mCore.drawPage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
-				return null;
+				try {
+					mCore.drawPage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
+					return new Boolean(true);
+				} catch (RuntimeException e) {
+					return new Boolean(false);
+				}
 			}
 		};
 
 	}
 
-	protected CancellableTaskDefinition<Void, Void> getUpdatePageTask(final Bitmap bm, final int sizeX, final int sizeY,
+	protected CancellableTaskDefinition<Void, Boolean> getUpdatePageTask(final Bitmap bm, final int sizeX, final int sizeY,
 			final int patchX, final int patchY, final int patchWidth, final int patchHeight)
 	{
-		return new MuPDFCancellableTaskDefinition<Void, Void>() {
+		return new MuPDFCancellableTaskDefinition<Void, Boolean>() {
 			@Override
-			public Void doInBackground(Cookie cookie, Void ... params) {
+			public Boolean doInBackground(Cookie cookie, Void ... params) {
 				// Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
 				// is not incremented when drawing.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&
 						Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 					bm.eraseColor(0);
-				mCore.updatePage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
-				return null;
+				try {
+					mCore.updatePage(bm, mPageNumber, sizeX, sizeY, patchX, patchY, patchWidth, patchHeight, cookie);
+					return new Boolean(true);
+				} catch (RuntimeException e) {
+					return new Boolean(false);
+				}
 			}
 		};
 	}
 
 	protected Link[] getLinkInfo() {
-		return mCore.getPageLinks(mPageNumber);
+		try {
+			return mCore.getPageLinks(mPageNumber);
+		} catch (RuntimeException e) {
+			return null;
+		}
 	}
 }
