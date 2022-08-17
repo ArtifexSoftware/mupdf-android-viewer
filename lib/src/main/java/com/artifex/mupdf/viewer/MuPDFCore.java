@@ -92,23 +92,25 @@ public class MuPDFCore
 		else if (pageNum < 0)
 			pageNum = 0;
 		if (pageNum != currentPage) {
-			currentPage = pageNum;
 			if (page != null)
 				page.destroy();
 			page = null;
 			if (displayList != null)
 				displayList.destroy();
 			displayList = null;
+			page = null;
+			pageWidth = 0;
+			pageHeight = 0;
+			currentPage = -1;
+
 			if (doc != null) {
 				page = doc.loadPage(pageNum);
 				Rect b = page.getBounds();
 				pageWidth = b.x1 - b.x0;
 				pageHeight = b.y1 - b.y0;
-			} else {
-				page = null;
-				pageWidth = 0;
-				pageHeight = 0;
 			}
+
+			currentPage = pageNum;
 		}
 	}
 
