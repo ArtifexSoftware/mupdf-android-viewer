@@ -22,7 +22,11 @@ public class PageAdapter extends BaseAdapter {
 	}
 
 	public int getCount() {
-		return mCore.countPages();
+		try {
+			return mCore.countPages();
+		} catch (RuntimeException e) {
+			return 0;
+		}
 	}
 
 	public Object getItem(int position) {
