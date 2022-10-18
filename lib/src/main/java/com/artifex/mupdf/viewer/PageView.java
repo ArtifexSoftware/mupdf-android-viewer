@@ -284,8 +284,8 @@ public class PageView extends ViewGroup {
 					if (!mIsBlank && mLinks != null && mHighlightLinks) {
 						paint.setColor(LINK_COLOR);
 						for (Link link : mLinks)
-							canvas.drawRect(link.bounds.x0*scale, link.bounds.y0*scale,
-									link.bounds.x1*scale, link.bounds.y1*scale,
+							canvas.drawRect(link.getBounds().x0*scale, link.getBounds().y0*scale,
+									link.getBounds().x1*scale, link.getBounds().y1*scale,
 									paint);
 					}
 				}
@@ -498,13 +498,13 @@ public class PageView extends ViewGroup {
 
 	public int hitLink(Link link) {
 		if (link.isExternal()) {
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.uri));
+			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(link.getURI()));
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); // API>=21: FLAG_ACTIVITY_NEW_DOCUMENT
 			try {
 				mContext.startActivity(intent);
 			} catch (FileUriExposedException x) {
 				Log.e(APP, x.toString());
-				Toast.makeText(getContext(), "Android does not allow following file:// link: " + link.uri, Toast.LENGTH_LONG).show();
+				Toast.makeText(getContext(), "Android does not allow following file:// link: " + link.getURI(), Toast.LENGTH_LONG).show();
 			} catch (Throwable x) {
 				Log.e(APP, x.toString());
 				Toast.makeText(getContext(), x.getMessage(), Toast.LENGTH_LONG).show();
@@ -526,7 +526,7 @@ public class PageView extends ViewGroup {
 
 		if (mLinks != null)
 			for (Link l: mLinks)
-				if (l.bounds.contains(docRelX, docRelY))
+				if (l.getBounds().contains(docRelX, docRelY))
 					return hitLink(l);
 		return 0;
 	}
