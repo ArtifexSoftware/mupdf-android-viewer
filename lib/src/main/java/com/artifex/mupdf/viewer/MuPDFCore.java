@@ -137,7 +137,11 @@ public class MuPDFCore
 		gotoPage(pageNum);
 
 		if (displayList == null && page != null)
-			displayList = page.toDisplayList();
+			try {
+				displayList = page.toDisplayList();
+			} catch (Exception ex) {
+				displayList = null;
+			}
 
 		if (displayList == null || page == null)
 			return;
