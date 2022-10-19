@@ -832,7 +832,7 @@ public class DocumentActivity extends Activity
 
 	@Override
 	public void onBackPressed() {
-		if (mDocView == null || !mDocView.popHistory()) {
+		if (mDocView == null || (mDocView != null && !mDocView.popHistory())) {
 			super.onBackPressed();
 			if (mReturnToLibraryActivity) {
 				Intent intent = getPackageManager().getLaunchIntentForPackage(getComponentName().getPackageName());
