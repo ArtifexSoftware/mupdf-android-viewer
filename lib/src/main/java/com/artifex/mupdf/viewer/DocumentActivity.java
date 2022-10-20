@@ -581,7 +581,7 @@ public class DocumentActivity extends Activity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case OUTLINE_REQUEST:
-			if (resultCode >= RESULT_FIRST_USER) {
+			if (resultCode >= RESULT_FIRST_USER && mDocView != null) {
 				mDocView.pushHistory();
 				mDocView.setDisplayedViewIndex(resultCode-RESULT_FIRST_USER);
 			}
