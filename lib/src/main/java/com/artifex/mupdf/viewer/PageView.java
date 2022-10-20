@@ -621,6 +621,8 @@ public class PageView extends ViewGroup {
 		return new MuPDFCancellableTaskDefinition<Void, Boolean>() {
 			@Override
 			public Boolean doInBackground(Cookie cookie, Void ... params) {
+				if (bm == null)
+					return new Boolean(false);
 				// Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
 				// is not incremented when drawing.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&
@@ -643,6 +645,8 @@ public class PageView extends ViewGroup {
 		return new MuPDFCancellableTaskDefinition<Void, Boolean>() {
 			@Override
 			public Boolean doInBackground(Cookie cookie, Void ... params) {
+				if (bm == null)
+					return new Boolean(false);
 				// Workaround bug in Android Honeycomb 3.x, where the bitmap generation count
 				// is not incremented when drawing.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&

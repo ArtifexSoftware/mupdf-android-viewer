@@ -53,7 +53,12 @@ public class PageAdapter extends BaseAdapter {
 		final PageView pageView;
 		if (convertView == null) {
 			if (mSharedHqBm == null || mSharedHqBm.getWidth() != parent.getWidth() || mSharedHqBm.getHeight() != parent.getHeight())
-				mSharedHqBm = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
+			{
+				if (parent.getWidth() > 0 && parent.getHeight() > 0)
+					mSharedHqBm = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
+				else
+					mSharedHqBm = null;
+			}
 
 			pageView = new PageView(mContext, mCore, new Point(parent.getWidth(), parent.getHeight()), mSharedHqBm);
 		} else {
