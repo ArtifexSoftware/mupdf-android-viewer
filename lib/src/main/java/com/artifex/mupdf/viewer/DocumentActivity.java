@@ -550,7 +550,7 @@ public class DocumentActivity extends Activity
 						Bundle bundle = new Bundle();
 						bundle.putInt("POSITION", mDocView.getDisplayedViewIndex());
 						bundle.putSerializable("OUTLINE", mFlatOutline);
-						intent.putExtras(bundle);
+						intent.putExtra("PALLETBUNDLE", Pallet.sendBundle(bundle));
 						startActivityForResult(intent, OUTLINE_REQUEST);
 					}
 				}
