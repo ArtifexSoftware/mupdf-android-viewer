@@ -634,7 +634,8 @@ public class DocumentActivity extends Activity
 	{
 		if (mDocView != null) {
 			mDocView.applyToChildren(new ReaderView.ViewMapper() {
-				void applyToView(View view) {
+				@Override
+				public void applyToView(View view) {
 					((PageView)view).releaseBitmaps();
 				}
 			});

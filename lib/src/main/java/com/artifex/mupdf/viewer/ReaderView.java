@@ -69,8 +69,8 @@ public class ReaderView
 
 	protected Stack<Integer> mHistory;
 
-	static abstract class ViewMapper {
-		abstract void applyToView(View view);
+	public interface ViewMapper {
+		void applyToView(View view);
 	}
 
 	public ReaderView(Context context) {
@@ -123,6 +123,10 @@ public class ReaderView
 
 	public void pushHistory() {
 		mHistory.push(mCurrent);
+	}
+
+	public void clearHistory() {
+		mHistory.clear();
 	}
 
 	public int getDisplayedViewIndex() {
