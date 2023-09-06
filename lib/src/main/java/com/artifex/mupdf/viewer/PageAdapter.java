@@ -37,7 +37,7 @@ public class PageAdapter extends BaseAdapter {
 		return 0;
 	}
 
-	public void releaseBitmaps()
+	public synchronized void releaseBitmaps()
 	{
 		//  recycle and release the shared bitmap.
 		if (mSharedHqBm!=null)
@@ -49,7 +49,7 @@ public class PageAdapter extends BaseAdapter {
 		mPageSizes.clear();
 	}
 
-	public View getView(final int position, View convertView, ViewGroup parent) {
+	public synchronized View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;
 		if (convertView == null) {
 			if (mSharedHqBm == null || mSharedHqBm.getWidth() != parent.getWidth() || mSharedHqBm.getHeight() != parent.getHeight())
