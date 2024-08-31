@@ -415,7 +415,7 @@ public class DocumentActivity extends Activity
 
 		// Set the file-name text
 		String docTitle = core.getTitle();
-		if (docTitle != null)
+		if (docTitle != null && !docTitle.isEmpty())
 			mDocNameView.setText(docTitle);
 		else
 			mDocNameView.setText(mDocTitle);
