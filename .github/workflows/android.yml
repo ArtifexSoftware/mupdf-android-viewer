@@ -59,11 +59,12 @@ jobs:
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
         with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ steps.keytool.outputs.key }} # Replace with the actual base64-encoded keystore
-          alias: my-key-alias
+          releaseDir: app/build/outputs/apk/release
+          signingKey: ${{ steps.keytool.outputs.key }} # Replace with the actual base64-encoded keystore
+          keyAlias: my-key-alias
           keyStorePassword: "123456"
           keyPassword: "123456"
+          buildToolsVersion: 33.0.0
     # Step 6: Generate Keystore using keytool
  #     - name: Generate Keystore
  #       run: |
