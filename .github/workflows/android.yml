@@ -57,6 +57,7 @@ jobs:
       - name: Decode the base64 signing key
         run: |
          cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
+         ls
          
       - name: Get key
         id: vars
