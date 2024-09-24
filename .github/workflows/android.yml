@@ -59,14 +59,14 @@ jobs:
          cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
          ls
          
-      - name: Read file contents
-        id: read_file
-        uses: andstor/file-reader-action@v1
+      - name: Read README.md
+        id: package
+        uses: jaywcjlove/github-action-read-file@main
         with:
-          path: "release.keystore"
+         path: release.keystore
 
-      - name: File contents
-        run: echo "${ steps.read_file.outputs.contents }"
+      - name: Echo release.keystore
+        run: echo "${{ steps.package.outputs.content }}"
         
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
