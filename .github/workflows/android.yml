@@ -33,7 +33,7 @@ jobs:
           sudo mv cmdline-tools /usr/local/android-sdk   
           
           echo "export ANDROID_SDK_ROOT=/usr/local/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=\$PATH:/usr/local/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
+          echo "export PATH=$PATH:/usr/local/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
           
  
           # Accept licenses
