@@ -61,7 +61,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: release.keystore  
+          path: some_signing_key.jks.base64.txt  
           
       - name: Read README.md
         id: package
