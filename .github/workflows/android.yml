@@ -26,17 +26,16 @@ jobs:
       run: |
           sudo apt-get update
           sudo apt-get install -y wget unzip
-          # Download command line tools for Android SDK
+    
           wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+          
           unzip commandlinetools-linux-7583922_latest.zip -d cmdline-tools
-          sudo mv cmdline-tools /usr/local/android-sdk
-          sudo mkdir -p /usr/local/android-sdk/cmdline-tools/latest
-          sudo mv /usr/local/android-sdk/cmdline-tools/* /usr/local/android-sdk/cmdline-tools/latest/
-
-          # Set up Android environment variables
+          sudo mv cmdline-tools /usr/local/android-sdk   
+          
           echo "export ANDROID_SDK_ROOT=/usr/local/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=\$PATH:/usr/local/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
-
+          echo "export PATH=\$PATH:/usr/local/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
+          
+ 
           # Accept licenses
           yes | sdkmanager --licenses
 
