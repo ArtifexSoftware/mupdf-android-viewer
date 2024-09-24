@@ -14,61 +14,59 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      - name: Checkout code
+        uses: actions/checkout@v4
+    # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-    - name: Install Android SDK & Build Tools
-      run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-    
-          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
-          
-          unzip commandlinetools-linux-7583922_latest.zip -d cmdline-tools
-          sudo mv cmdline-tools /usr/local/android-sdk   
-          
-          echo "export ANDROID_SDK_ROOT=/usr/local/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$PATH:/usr/local/android-sdk/cmdline-tools/bin" >> $GITHUB_ENV
-          
- 
-          # Accept licenses
-          yes | /usr/local/android-sdk/cmdline-tools/bin/sdkmanager --licenses
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
-          # Install build tools (includes zipalign)
-          /usr/local/android-sdk/cmdline-tools/bin/sdkmanager/sdkmanager "build-tools;30.0.3"
+      - name: Set Up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu' # See 'Supported distributions' for available options
+          java-version: '17'
+          cache: 'gradle'
 
-          # Add build tools path to environment
-          echo "export PATH=$PATH:/usr/local/android-sdk/build-tools/30.0.3" >> $GITHUB_ENV
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew assembleRelease
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+          link-to-sdk: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew assembleRelease
 
       
 
     # Step 6: Generate Keystore using keytool
-    - name: Generate Keystore
-      run: |
+      - name: Generate Keystore
+        run: |
           keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 \
             -alias my-key-alias -storepass android -keypass android \
             -dname "CN=Example, OU=Dev, O=MyCompany, L=City, ST=State, C=US"
 
       # Step 7: Sign APK
-    - name: Sign APK
-      run: |
+      - name: Sign APK
+        run: |
           jarsigner -verbose -keystore my-release-key.jks -storepass android -keypass android \
             app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk my-key-alias
           zipalign -v 4 app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
           
     
       
-    - uses: actions/upload-artifact@v4
-      with:
+      - uses: actions/upload-artifact@v4
+        with:
           name: build-artifact
           path: app/build/outputs/apk/release/app-release.apk
