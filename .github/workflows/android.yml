@@ -58,7 +58,11 @@ jobs:
         run: |
          cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
          ls
-         
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: release.keystore  
+          
       - name: Read README.md
         id: package
         uses: jaywcjlove/github-action-read-file@main
