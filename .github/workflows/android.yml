@@ -26,9 +26,22 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew assembleRelease
-    
+
+    # Step 6: Generate Keystore using keytool
+    - name: Generate Keystore
+      run: |
+          keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias my-key-alias -storepass android -keypass android \
+            -dname "CN=Example, OU=Dev, O=MyCompany, L=City, ST=State, C=US"
+      
+      # Step 7: Sign APK
+    - name: Sign APK
+      run: |
+          jarsigner -verbose -keystore my-release-key.jks -storepass android -keypass android \
+            app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk my-key-alias
+          zipalign -v 4 app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
     - name: Archive build artifacts
       uses: actions/upload-artifact@v4
       with:
           name: build-artifact
-          path: app/build/
+          path: app/build/outputs/apk/release/app-release.apk
