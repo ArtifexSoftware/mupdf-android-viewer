@@ -22,6 +22,30 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Install Android SDK & Build Tools
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          # Download command line tools for Android SDK
+          wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip
+          unzip commandlinetools-linux-7583922_latest.zip -d cmdline-tools
+          sudo mv cmdline-tools /usr/local/android-sdk
+          sudo mkdir -p /usr/local/android-sdk/cmdline-tools/latest
+          sudo mv /usr/local/android-sdk/cmdline-tools/* /usr/local/android-sdk/cmdline-tools/latest/
+
+          # Set up Android environment variables
+          echo "export ANDROID_SDK_ROOT=/usr/local/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=\$PATH:/usr/local/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_ENV
+
+          # Accept licenses
+          yes | sdkmanager --licenses
+
+          # Install build tools (includes zipalign)
+          sdkmanager "build-tools;30.0.3"
+
+          # Add build tools path to environment
+          echo "export PATH=\$PATH:/usr/local/android-sdk/build-tools/30.0.3" >> $GITHUB_ENV
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
@@ -35,17 +59,7 @@ jobs:
           keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 \
             -alias my-key-alias -storepass android -keypass android \
             -dname "CN=Example, OU=Dev, O=MyCompany, L=City, ST=State, C=US"
-    - name: Sign Release
 
-      uses: r0adkll/sign-android-release@v1
-
-      id: sign_app
-
-      
-      
-      env:
-
-          BUILD_TOOLS_VERSION: "34.0.0"  
       # Step 7: Sign APK
     - name: Sign APK
       run: |
