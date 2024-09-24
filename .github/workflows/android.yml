@@ -49,16 +49,21 @@ jobs:
         run: ./gradlew assembleRelease
 
       
-      - uses: ilharp/sign-android-release@v1 # Or use @nightly
-        name: Sign app APK
-        id: sign_app
+      # Generate signing key using keytool
+      - name: Generate signing key
+        run: |
+          keytool -genkey -v -keystore my-release-key.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias \
+          -storepass "123456" -keypass "123456" -dname "CN=Your Name, OU=Your Org, O=Your Org, L=Your City, S=Your State, C=Your Country"
+
+      # Sign APK using ilharp/sign-android-release@v1
+      - name: Sign APK
+        uses: ilharp/sign-android-release@v1
         with:
-          releaseDir: app/build/outputs/apk/release
-          signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
-          keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: 33.0.0
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ steps.keytool.outputs.key }} # Replace with the actual base64-encoded keystore
+          alias: my-key-alias
+          keyStorePassword: "123456"
+          keyPassword: "123456"
     # Step 6: Generate Keystore using keytool
  #     - name: Generate Keystore
  #       run: |
