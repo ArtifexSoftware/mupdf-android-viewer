@@ -60,7 +60,7 @@ jobs:
         uses: ilharp/sign-android-release@v1
         with:
           releaseDir: app/build/outputs/apk/release
-          signingKey: ${{ steps.keytool.outputs.key }} # Replace with the actual base64-encoded keystore
+          signingKey: $(cat my-release-key.keystore | base64) # Replace with the actual base64-encoded keystore
           keyAlias: my-key-alias
           keyStorePassword: "123456"
           keyPassword: "123456"
