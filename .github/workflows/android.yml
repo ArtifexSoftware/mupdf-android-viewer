@@ -27,6 +27,28 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew assembleRelease
 
+    - name: Sign Release
+
+      uses: r0adkll/sign-android-release@v1
+
+      id: sign_app
+
+      with:
+
+          releaseDirectory: app/build/outputs/apk/release
+
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+
+          alias: ${{ secrets.ALIAS }}
+
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          zipAlign: true
+      env:
+
+          BUILD_TOOLS_VERSION: "34.0.0"  
+
     # Step 6: Generate Keystore using keytool
     - name: Generate Keystore
       run: |
