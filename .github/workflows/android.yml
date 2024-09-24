@@ -50,17 +50,19 @@ jobs:
 
       
       # Generate signing key using keytool
-      - name: Generate signing key
+      - name: Encode signing key with openssl
         run: |
-          keytool -genkey -v -keystore my-release-key.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias \
-          -storepass "123456" -keypass "123456" -dname "CN=Your Name, OU=Your Org, O=Your Org, L=Your City, S=Your State, C=Your Country"
+         openssl base64 < path/to/your/some_signing_key.jks | tr -d '\n' | tee some_signing_key.jks.base64.txt
 
+      - name: Decode the base64 signing key
+        run: |
+         cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
         with:
           releaseDir: app/build/outputs/apk/release
-          signingKey: $(cat my-release-key.keystore | base64) # Replace with the actual base64-encoded keystore
+          signingKey: $(cat release.keystore | base64 | tr -d '\n') # Replace with the actual base64-encoded keystore
           keyAlias: my-key-alias
           keyStorePassword: "123456"
           keyPassword: "123456"
