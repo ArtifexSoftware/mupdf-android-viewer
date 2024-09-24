@@ -37,13 +37,13 @@ jobs:
           
  
           # Accept licenses
-          yes | sdkmanager --licenses
+          yes | /usr/local/android-sdk/cmdline-tools/bin/sdkmanager --licenses
 
           # Install build tools (includes zipalign)
-          sdkmanager "build-tools;30.0.3"
+          /usr/local/android-sdk/cmdline-tools/bin/sdkmanager/sdkmanager "build-tools;30.0.3"
 
           # Add build tools path to environment
-          echo "export PATH=\$PATH:/usr/local/android-sdk/build-tools/30.0.3" >> $GITHUB_ENV
+          echo "export PATH=$PATH:/usr/local/android-sdk/build-tools/30.0.3" >> $GITHUB_ENV
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
