@@ -57,7 +57,7 @@ jobs:
       - name: Decode the base64 signing key
         run: |
          cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
-         cat release.keystore
+         echo "$(<release.keystore)" 
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
