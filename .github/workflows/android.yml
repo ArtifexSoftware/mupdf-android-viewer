@@ -62,15 +62,14 @@ jobs:
             -storepass "123456" \
             -keypass "123456" \
             -keystore df.jks
-          echo "encoded_key=$(base64 df.jks | tr -d '\n')" >> "$GITHUB_OUTPUT"
-         # $(base64 -i df.jks -w 0) >> "$GITHUB_OUTPUT"
-      
+          echo "encoded_key=$(base64 df.jks | tr -d '\n')" >> "$GITHUB_OUTPUT
+
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
         with:
           releaseDir: app/build/outputs/apk/release
-          signingKey: ${{ steps.skey.outputs }} # Replace with the actual base64-encoded keystore
+          signingKey: ${{ steps.skey.outputs.encoded_key }} # Replace with the actual base64-encoded keystore
           keyAlias: alias
           keyStorePassword: "123456"
           keyPassword: "123456"
