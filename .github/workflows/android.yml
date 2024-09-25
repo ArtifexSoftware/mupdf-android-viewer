@@ -62,7 +62,7 @@ jobs:
             -storepass "123456" \
             -keypass "123456" \
             -keystore df.jks
-          echo "encoded_key=$(base64 df.jks | tr -d '\n')" >> "$GITHUB_OUTPUT
+          echo "encoded_key=$(base64 df.jks | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
