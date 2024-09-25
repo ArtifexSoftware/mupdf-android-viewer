@@ -35,9 +35,13 @@ keytool -genkeypair \
   -keystore $KEYSTORE_FILE_PATH
 
 # Get base64 of keystore file
-base64 -i $KEYSTORE_FILE_PATH -w 0
-
+#base64 -i $KEYSTORE_FILE_PATH -w 0
+export $SIGNINGKEY=$(base64 "${KEYSTORE_FILE_PATH}" | tr -d '\n')
 # Remove key store file
+echo ""
+echo "SIGNING Key: ${SIGNINGKEY}"
+echo ""
+echo 
 if [ -f "${KEYSTORE_FILE_PATH}" ]; then
   rm -f $KEYSTORE_FILE_PATH
 fi

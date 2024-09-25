@@ -48,37 +48,29 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew assembleRelease
 
+      - name: gener key
+        id: skey
+        run: |
+          keytool -genkeypair \
+            -alias alias \
+            -storetype JKS \
+            -keyalg RSA \
+            -sigalg SHA256withRSA \
+            -keysize 2048 \
+            -validity 3650 \
+            -dname "CN=cv, OU=jk, O=mul, L=go, ST=goiania, C=br" \
+            -storepass "123456" \
+            -keypass "123456" \
+            -keystore df.jks
+          base64 -i df.jks -w 0 >> "$GITHUB_OUTPUT"
       
-      # Generate signing key using keytool
-      - name: Encode signing key with openssl
-        run: |
-         openssl base64 < path/to/your/some_signing_key.jks | tr -d '\n' | tee some_signing_key.jks.base64.txt
-
-      - name: Decode the base64 signing key
-        run: |
-         cat some_signing_key.jks.base64.txt | base64 -d > release.keystore
-         ls
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifact
-          path: some_signing_key.jks.base64.txt  
-          
-      - name: Read README.md
-        id: package
-        uses: jaywcjlove/github-action-read-file@main
-        with:
-         path: release.keystore
-
-      - name: Echo release.keystore
-        run: echo "${{ steps.package.outputs.content }}"
-        
       # Sign APK using ilharp/sign-android-release@v1
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
         with:
           releaseDir: app/build/outputs/apk/release
-          signingKey: $(cat release.keystore) # Replace with the actual base64-encoded keystore
-          keyAlias: my-key-alias
+          signingKey: ${{ steps.skey.outputs }} # Replace with the actual base64-encoded keystore
+          keyAlias: alias
           keyStorePassword: "123456"
           keyPassword: "123456"
           buildToolsVersion: 33.0.0
