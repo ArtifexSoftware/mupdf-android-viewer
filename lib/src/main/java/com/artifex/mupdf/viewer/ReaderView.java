@@ -2,7 +2,7 @@ package com.artifex.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.StructuredText;
-//import com.artifex.mupdf.fitz.Point;
+import com.artifex.mupdf.fitz;
 
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -909,13 +909,9 @@ public class ReaderView
 		invalidate();
 	}
     public int snapword(float x, float y) {
-		com.artifex.mupdf.fitz.Point tmp1 = new com.artifex.mupdf.fitz.Point();
-		tmp1.x = x;
-		tmp1.y = y;
-		Point tmp2 = new Point();
-		tmp2.x = x + (float)50;
-	    tmp2.y = y + (float)50;
-        return StructuredText.napSelection(tmp1, tmp2, mST.FZ_SELECT_WORDS);
+		fitz.Point tmp1 = new fitz.Point(x,y);
+		fitz.Point tmp2 = new fitz.Point(x,y);
+        return StructuredText.napSelection(tmp1, tmp2, StructuredText.FZ_SELECT_WORDS);
 	}
 	public boolean onSingleTapUp(MotionEvent e) {
 		Link link = null;
