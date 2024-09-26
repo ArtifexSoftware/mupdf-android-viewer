@@ -2,7 +2,7 @@ package com.artifex.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.StructuredText;
-import com.artifex.mupdf.fitz.Point;
+//import com.artifex.mupdf.fitz.Point;
 
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -68,7 +68,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
-    public       StructuredText mST = new StructuredText(123);
+   // public       StructuredText mST = new StructuredText(123);
 	protected Stack<Integer> mHistory;
 
 	static abstract class ViewMapper {
@@ -915,7 +915,7 @@ public class ReaderView
 		Point tmp2 = new Point();
 		tmp2.x = x + (float)50;
 	    tmp2.y = y + (float)50;
-        return mST.snapSelection(tmp1, tmp2, mST.FZ_SELECT_WORDS);
+        return StructuredText.napSelection(tmp1, tmp2, mST.FZ_SELECT_WORDS);
 	}
 	public boolean onSingleTapUp(MotionEvent e) {
 		Link link = null;
