@@ -67,7 +67,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
-    private       StructuredText mST = new StructuredText();
+    private       StructuredText mST = new StructuredText(this);
 	protected Stack<Integer> mHistory;
 
 	static abstract class ViewMapper {
