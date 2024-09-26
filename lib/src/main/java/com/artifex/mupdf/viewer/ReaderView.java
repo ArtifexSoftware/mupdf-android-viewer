@@ -67,7 +67,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
-    private       StructuredText mST = new StructuredText(this);
+    private       StructuredText mST = new StructuredText(123);
 	protected Stack<Integer> mHistory;
 
 	static abstract class ViewMapper {
@@ -907,7 +907,7 @@ public class ReaderView
 		resetupChildren();
 		invalidate();
 	}
-    public int snapword(float x, float y) {
+    public int snapword(int x, int y) {
 		Point tmp1 = new Point();
 		tmp1.x = x;
 		tmp1.y = y;
