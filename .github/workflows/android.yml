@@ -46,7 +46,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew assembleRelease
+        run: |
+          ./gradlew assembleRelease
+          sudo mkdir app/build/outputs/apk/release/si
+          sudo cp app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/si
+
+
+
 
       - name: gener key
         id: skey
@@ -68,7 +74,7 @@ jobs:
       - name: Sign APK
         uses: ilharp/sign-android-release@v1
         with:
-          releaseDir: app/build/outputs/apk/release
+          releaseDir: app/build/outputs/apk/release/si
           signingKey: ${{ steps.skey.outputs.encoded_key }} # Replace with the actual base64-encoded keystore
           keyAlias: alias
           keyStorePassword: "123456"
@@ -93,4 +99,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: build-artifact
-          path: app/build/outputs/apk/release
+          path: app/build/outputs/apk/release/si/app-arm64-v8a-release-unsigned-signed.apk
