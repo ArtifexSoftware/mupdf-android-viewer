@@ -3,7 +3,6 @@ package com.artifex.mupdf.viewer;
 import com.artifex.mupdf.fitz.Cookie;
 import com.artifex.mupdf.fitz.Link;
 import com.artifex.mupdf.fitz.Quad;
-import com.artifex.mupdf.fitz.StructuredText;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -66,7 +65,6 @@ public class PageView extends ViewGroup {
 	private static final int PROGRESS_DIALOG_DELAY = 200;
 
 	protected final Context mContext;
-    private       StructuredText mST;
 	protected     int       mPageNumber;
 	private       Point     mParentSize;
 	protected     Point     mSize;   // Size of page at minimum zoom

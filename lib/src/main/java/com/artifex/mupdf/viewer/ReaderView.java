@@ -1,6 +1,7 @@
 package com.artifex.mupdf.viewer;
 
 import com.artifex.mupdf.fitz.Link;
+import com.artifex.mupdf.fitz.StructuredText;
 
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -66,7 +67,7 @@ public class ReaderView
 	private int               mScrollerLastY;
 	private float		  mLastScaleFocusX;
 	private float		  mLastScaleFocusY;
-
+    private       StructuredText mST = new StructuredText();
 	protected Stack<Integer> mHistory;
 
 	static abstract class ViewMapper {
@@ -906,7 +907,15 @@ public class ReaderView
 		resetupChildren();
 		invalidate();
 	}
-
+    public int snapword(float x, float y) {
+		Point tmp1 = new Point();
+		tmp1.x = x;
+		tmp1.y = y;
+		Point tmp2 = new Point();
+		tmp2.x = x + 50;
+	    tmp2.y = y + 50;
+        return mST.snapSelection(tmp1, tmp2, mST.FZ_SELECT_WORDS);
+	}
 	public boolean onSingleTapUp(MotionEvent e) {
 		Link link = null;
 		if (!tapDisabled) {
@@ -918,6 +927,7 @@ public class ReaderView
 					setDisplayedViewIndex(page);
 				} else {
 					onTapMainDocArea();
+					snapword(e.getX(), e.getY());
 				}
 			} else if (e.getX() < tapPageMargin) {
 				smartMoveBackwards();
@@ -929,11 +939,12 @@ public class ReaderView
 				smartMoveForwards();
 			} else {
 				onTapMainDocArea();
+				snapword(e.getX(), e.getY());
 			}
 		}
 		return true;
 	}
-
+    
 	protected void onChildSetup(int i, View v) {
 		if (SearchTaskResult.get() != null
 				&& SearchTaskResult.get().pageNumber == i)
