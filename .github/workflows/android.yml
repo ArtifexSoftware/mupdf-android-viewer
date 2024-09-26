@@ -50,7 +50,7 @@ jobs:
           ./gradlew assembleRelease
           sudo mkdir app/build/outputs/apk/release/si
           sudo cp app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/si
-          sudo chmod +x app/build/outputs/apk/release/si
+          sudo chmod 777 app/build/outputs/apk/release/si
 
 
 
