@@ -911,7 +911,7 @@ public class ReaderView
     public int snapword(float x, float y) {
 		com.artifex.mupdf.fitz.Point tmp1 = new com.artifex.mupdf.fitz.Point(x,y);
 		com.artifex.mupdf.fitz.Point tmp2 = new com.artifex.mupdf.fitz.Point(x,y);
-        return StructuredText.napSelection(tmp1, tmp2, 1);
+        return 0;//StructuredText.napSelection(tmp1, tmp2, 1);
 	}
 	public boolean onSingleTapUp(MotionEvent e) {
 		Link link = null;
