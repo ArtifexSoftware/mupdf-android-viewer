@@ -224,6 +224,9 @@ public class MuPDFCore
 	}
 
 	public synchronized boolean authenticatePassword(String password) {
-		return doc.authenticatePassword(password);
+		boolean authenticated = doc.authenticatePassword(password);
+		pageCount = doc.countPages();
+		reflowable = doc.isReflowable();
+		return authenticated;
 	}
 }
