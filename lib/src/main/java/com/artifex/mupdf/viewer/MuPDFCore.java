@@ -16,11 +16,14 @@ import com.artifex.mupdf.fitz.android.AndroidDrawDevice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class MuPDFCore
 {
+	private final String APP = "MuPDF";
+
 	private int resolution;
 	private Document doc;
 	private Outline[] outline;
