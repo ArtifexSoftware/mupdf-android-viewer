@@ -7,3 +7,5 @@ build
 local.properties
 MAVEN
 tags
+mupdf-*-android-viewer.apk
+mupdf-*-android-viewer--app-release.aab
