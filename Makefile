@@ -24,6 +24,13 @@ tarball: release
 		mupdf-$(shell git describe --tags)-android-viewer.apk
 	cp app/build/outputs/bundle/release/app-release.aab \
 		mupdf-$(shell git describe --tags)-android-viewer-app-release.aab
+synctarball: tarball
+	rsync -av --chmod=g+w --chown=:gs-web \
+		mupdf-$(shell git describe --tags)-android-viewer.apk \
+		ghostscript.com:/var/www/mupdf.com/downloads/archive/mupdf-$(shell git describe --tags)-android-viewer.apk
+	rsync -av --chmod=g+w --chown=:gs-web \
+		mupdf-$(shell git describe --tags)-android-viewer-app-release.aab \
+		ghostscript.com:/var/www/mupdf.com/downloads/archive/mupdf-$(shell git describe --tags)-android-viewer-app-release.aab
 
 run: install
 	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
