@@ -19,14 +19,16 @@ sync: archive
 		$(HOME)/MAVEN/com/ \
 		ghostscript.com:/var/www/maven.ghostscript.com/com/
 
+tarball: release
+	cp app/build/outputs/apk/release/app-universal-release.apk \
+		mupdf-$(shell git describe --tags)-android-viewer.apk
+	cp app/build/outputs/bundle/release/app-release.aab \
+		mupdf-$(shell git describe --tags)-android-viewer-app-release.aab
+
 run: install
 	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
 run-release: install-release
 	adb shell am start -n com.artifex.mupdf.viewer.app/.LibraryActivity
-
-tarball: release
-	cp app/build/outputs/apk/release/app-universal-release.apk \
-		mupdf-$(shell git describe --tags)-android-viewer.apk
 
 clean:
 	rm -rf .gradle build
