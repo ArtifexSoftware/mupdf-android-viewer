@@ -16,8 +16,8 @@ archive:
 	./gradlew --warning-mode=all publishReleasePublicationToLocalRepository
 sync: archive
 	rsync -av --chmod=g+w --chown=:gs-web \
-		$(HOME)/MAVEN/com/ \
-		ghostscript.com:/var/www/maven.ghostscript.com/com/
+		$(HOME)/MAVEN/com/artifex/mupdf/viewer/$(shell git describe --tags)/ \
+		ghostscript.com:/var/www/maven.ghostscript.com/com/artifex/mupdf/viewer/$(shell git describe --tags)/
 
 tarball: release
 	cp app/build/outputs/apk/release/app-universal-release.apk \
