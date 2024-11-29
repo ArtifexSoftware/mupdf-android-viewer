@@ -19,7 +19,7 @@ sync: archive
 		$(HOME)/MAVEN/com/artifex/mupdf/viewer/$(shell git describe --tags)/ \
 		ghostscript.com:/var/www/maven.ghostscript.com/com/artifex/mupdf/viewer/$(shell git describe --tags)/
 	rsync -av --chmod=g+w --chown=:gs-web \
-		$(HOME)/MAVEN/com/artifex/mupdf/viewer/maven-metadata.xml*
+		$(HOME)/MAVEN/com/artifex/mupdf/viewer/maven-metadata.xml* \
 		ghostscript.com:/var/www/maven.ghostscript.com/com/artifex/mupdf/viewer/
 
 tarball: release
