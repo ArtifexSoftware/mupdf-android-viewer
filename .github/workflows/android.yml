@@ -1,0 +1,103 @@
+name: Android CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_images:
+        description: '请填写docker镜像名称 多个用英文逗号分开'
+        required: true
+        default: 'alpine:latest'  # 设置默认的 Docker 镜像列表
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+    # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Set Up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu' # See 'Supported distributions' for available options
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+          link-to-sdk: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: |
+          ./gradlew assembleRelease
+          sudo mkdir app/build/outputs/apk/release/si
+          sudo cp app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/si
+          sudo chmod 777 app/build/outputs/apk/release/si
+
+
+
+
+      - name: gener key
+        id: skey
+        run: |
+          keytool -genkeypair \
+            -alias alias \
+            -storetype JKS \
+            -keyalg RSA \
+            -sigalg SHA256withRSA \
+            -keysize 2048 \
+            -validity 3650 \
+            -dname "CN=cv, OU=jk, O=mul, L=go, ST=goiania, C=br" \
+            -storepass "123456" \
+            -keypass "123456" \
+            -keystore df.jks
+          echo "encoded_key=$(base64 df.jks | tr -d '\n')" >> "$GITHUB_OUTPUT"
+
+      # Sign APK using ilharp/sign-android-release@v1
+      - name: Sign APK
+        uses: ilharp/sign-android-release@v1
+        with:
+          releaseDir: app/build/outputs/apk/release/si
+          signingKey: ${{ steps.skey.outputs.encoded_key }} # Replace with the actual base64-encoded keystore
+          keyAlias: alias
+          keyStorePassword: "123456"
+          keyPassword: "123456"
+          buildToolsVersion: 33.0.0
+    # Step 6: Generate Keystore using keytool
+ #     - name: Generate Keystore
+ #       run: |
+   #       keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 \
+  #          -alias my-key-alias -storepass android -keypass android \
+#            -dname "CN=Example, OU=Dev, O=MyCompany, L=City, ST=State, C=US"
+
+      # Step 7: Sign APK
+    #  - name: Sign APK
+    #    run: |
+    #      jarsigner -verbose -keystore my-release-key.jks -storepass android -keypass android \
+   #         app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk my-key-alias
+    #      zipalign -v 4 app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+          
+    
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: app/build/outputs/apk/release/si/app-arm64-v8a-release-unsigned-signed.apk
