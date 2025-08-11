@@ -2,6 +2,7 @@ package com.artifex.mupdf.viewer;
 
 import android.app.ListActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 
 public class OutlineActivity extends ListActivity
 {
+	private final String APP = "MuPDF";
+
 	public static class Item implements Serializable {
 		public String title;
 		public int page;

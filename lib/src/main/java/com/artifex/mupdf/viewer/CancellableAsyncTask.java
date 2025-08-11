@@ -1,6 +1,7 @@
 package com.artifex.mupdf.viewer;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -9,6 +10,8 @@ import java.util.concurrent.ExecutionException;
 // be overridden. I felt that having two different, but similar cancel methods was a bad idea.
 public class CancellableAsyncTask<Params, Result>
 {
+	private final String APP = "MuPDF";
+
 	private final AsyncTask<Params, Void, Result> asyncTask;
 	private final CancellableTaskDefinition<Params, Result> ourTask;
 

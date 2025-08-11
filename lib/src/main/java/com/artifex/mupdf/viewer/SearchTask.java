@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.AsyncTask;
+import android.util.Log;
 
 class ProgressDialogX extends ProgressDialog {
 	public ProgressDialogX(Context context) {
@@ -28,6 +29,8 @@ class ProgressDialogX extends ProgressDialog {
 }
 
 public abstract class SearchTask {
+	private final String APP = "MuPDF";
+
 	private static final int SEARCH_PROGRESS_DELAY = 200;
 	private final Context mContext;
 	private final MuPDFCore mCore;

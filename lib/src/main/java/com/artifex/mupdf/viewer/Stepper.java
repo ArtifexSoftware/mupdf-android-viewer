@@ -2,9 +2,11 @@ package com.artifex.mupdf.viewer;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.util.Log;
 import android.view.View;
 
 public class Stepper {
+	private final String APP = "MuPDF";
 	protected final View mPoster;
 	protected final Runnable mTask;
 	protected boolean mPending;
