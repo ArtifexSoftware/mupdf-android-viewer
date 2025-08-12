@@ -2,14 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 group = 'com.artifex.mupdf'
-version = '1.26.3a'
+version = '1.26.5a'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
-		api 'com.artifex.mupdf:fitz:1.26.3'
+		api 'com.artifex.mupdf:fitz:1.26.5'
 }
 
 android {
