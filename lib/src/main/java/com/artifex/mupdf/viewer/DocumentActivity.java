@@ -77,6 +77,7 @@ public class DocumentActivity extends Activity
 	private TextView     mPageNumberView;
 	private ImageButton  mSearchButton;
 	private ImageButton  mOutlineButton;
+	private ImageButton  mToggleFlingButton;
 	private ViewAnimator mTopBarSwitcher;
 	private ImageButton  mLinkButton;
 	private TopBarMode   mTopBarMode = TopBarMode.Main;
@@ -442,6 +443,12 @@ public class DocumentActivity extends Activity
 			}
 		});
 
+		mToggleFlingButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				mDocView.toggleFlingDirection();
+			}
+		});
+
 		mSearchClose.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				searchModeOff();
@@ -766,6 +773,7 @@ public class DocumentActivity extends Activity
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
+		mToggleFlingButton = (ImageButton)mButtonsView.findViewById(R.id.toggleFlingButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
 		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);
 		mSearchFwd = (ImageButton)mButtonsView.findViewById(R.id.searchForward);
