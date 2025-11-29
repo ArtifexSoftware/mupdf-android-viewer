@@ -44,4 +44,7 @@ clean:
 	rm -rf .gradle build
 	rm -rf jni/.cxx jni/.externalNativeBuild jni/.gradle jni/build
 	rm -rf lib/.gradle lib/build
-	rm -rf app/.gradle app/build
+	rm -rf app/.gradle app/build/generated app/build/intermediates app/build/tmp app/build/outputs/logs app/build/outputs/bundle
+
+nuke: clean
+	rm -rf app/build
