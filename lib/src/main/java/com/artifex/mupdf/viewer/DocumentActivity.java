@@ -543,8 +543,12 @@ public class DocumentActivity extends Activity
 		if (core.hasOutline()) {
 			mOutlineButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
+					boolean outlineTruncated = false;
 					if (mFlatOutline == null)
+					{
 						mFlatOutline = core.getOutline();
+						outlineTruncated = core.wasOutlineTruncated();
+					}
 					if (mFlatOutline != null) {
 						Intent intent = new Intent(DocumentActivity.this, OutlineActivity.class);
 						Bundle bundle = new Bundle();
@@ -552,6 +556,8 @@ public class DocumentActivity extends Activity
 						bundle.putSerializable("OUTLINE", mFlatOutline);
 						intent.putExtra("PALLETBUNDLE", Pallet.sendBundle(bundle));
 						startActivityForResult(intent, OUTLINE_REQUEST);
+						if (outlineTruncated)
+							Toast.makeText(DocumentActivity.this, "Outline too large, truncated", Toast.LENGTH_SHORT).show();
 					}
 				}
 			});

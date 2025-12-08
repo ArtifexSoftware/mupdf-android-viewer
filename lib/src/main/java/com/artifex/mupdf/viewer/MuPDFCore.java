@@ -24,6 +24,9 @@ public class MuPDFCore
 {
 	private final String APP = "MuPDF";
 
+	private final int MAXIMUM_OUTLINE_ITEMS = 1000;
+	private final int MAXIMUM_OUTLINE_DEPTH = 4;
+
 	private int resolution;
 	private Document doc;
 	private Outline[] outline;
@@ -39,6 +42,8 @@ public class MuPDFCore
 	private int layoutW = 312;
 	private int layoutH = 504;
 	private int layoutEM = 10;
+
+	private boolean outlineTruncated;
 
 	private MuPDFCore(Document doc) {
 		this.doc = doc;
@@ -202,21 +207,34 @@ public class MuPDFCore
 		return outline != null;
 	}
 
-	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent) {
+	private void flattenOutlineNodes(ArrayList<OutlineActivity.Item> result, Outline list[], String indent, int depth) {
 		for (Outline node : list) {
 			if (node.title != null) {
 				int page = doc.pageNumberFromLocation(doc.resolveLink(node));
-				result.add(new OutlineActivity.Item(indent + node.title, page));
+				if (result.size() >= MAXIMUM_OUTLINE_ITEMS)
+					outlineTruncated = true;
+				else
+					result.add(new OutlineActivity.Item(indent + node.title, page));
 			}
 			if (node.down != null)
-				flattenOutlineNodes(result, node.down, indent + "    ");
+			{
+				if (depth >= MAXIMUM_OUTLINE_DEPTH || result.size() >= MAXIMUM_OUTLINE_ITEMS)
+					outlineTruncated = true;
+				else
+					flattenOutlineNodes(result, node.down, indent + "    ", depth + 1);
+			}
 		}
 	}
 
 	public synchronized ArrayList<OutlineActivity.Item> getOutline() {
+		outlineTruncated = false;
 		ArrayList<OutlineActivity.Item> result = new ArrayList<OutlineActivity.Item>();
-		flattenOutlineNodes(result, outline, "");
+		flattenOutlineNodes(result, outline, "", 0);
 		return result;
+	}
+
+	public synchronized boolean wasOutlineTruncated() {
+		return outlineTruncated;
 	}
 
 	public synchronized boolean needsPassword() {
