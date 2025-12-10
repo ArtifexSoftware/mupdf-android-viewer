@@ -589,7 +589,7 @@ public class PageView extends ViewGroup {
 				mContext.startActivity(intent);
 			} catch (FileUriExposedException x) {
 				Log.e(APP, x.toString());
-				Toast.makeText(getContext(), "Android does not allow following file:// link: " + link.getURI(), Toast.LENGTH_LONG).show();
+				Toast.makeText(getContext(), getResources().getString(R.string.toast_file_uris_not_allowed) + link.getURI(), Toast.LENGTH_LONG).show();
 			} catch (Throwable x) {
 				Log.e(APP, x.toString());
 				Toast.makeText(getContext(), x.getMessage(), Toast.LENGTH_LONG).show();
