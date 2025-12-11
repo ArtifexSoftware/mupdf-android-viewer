@@ -6,6 +6,7 @@ version = '1.26.12a'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'
+	implementation 'androidx.core:core:1.5.+'
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
