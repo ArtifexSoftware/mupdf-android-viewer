@@ -15,10 +15,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.OpenableColumns;
@@ -33,6 +35,7 @@ import android.view.MenuItem.OnMenuItemClickListener;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -40,6 +43,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -54,6 +58,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 
 public class DocumentActivity extends Activity
@@ -62,6 +67,8 @@ public class DocumentActivity extends Activity
 
 	/* The core rendering instance */
 	enum TopBarMode {Main, Search, More};
+
+	private final float EXCLUSION_HEIGHT_FACTOR = 2.0f;
 
 	private final int    OUTLINE_REQUEST=0;
 	private MuPDFCore    core;
@@ -78,6 +85,10 @@ public class DocumentActivity extends Activity
 	private ImageButton  mSearchButton;
 	private ImageButton  mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
+	private LinearLayout mTopBar;
+	private LinearLayout mActionBar;
+	private LinearLayout mSearchBar;
+	private LinearLayout mBottomBar;
 	private ImageButton  mLinkButton;
 	private TopBarMode   mTopBarMode = TopBarMode.Main;
 	private ImageButton  mSearchBack;
@@ -97,6 +108,8 @@ public class DocumentActivity extends Activity
 	private int mLayoutEM = 10;
 	private int mLayoutW = 312;
 	private int mLayoutH = 504;
+
+	protected Insets systemInsets = Insets.NONE;
 
 	protected View mLayoutButton;
 	protected PopupMenu mLayoutPopupMenu;
@@ -347,6 +360,16 @@ public class DocumentActivity extends Activity
 		mDocView.setDisplayedViewIndex(loc);
 	}
 
+	protected void applyInsets(WindowInsets windowInsets) {
+		systemInsets = Insets.NONE;
+		Insets systemBarInsets = windowInsets.getInsets(WindowInsets.Type.systemBars());
+		systemInsets = Insets.max(systemInsets, systemBarInsets);
+		Insets cutoutInsets = windowInsets.getInsets(WindowInsets.Type.displayCutout());
+		systemInsets = Insets.max(systemInsets, cutoutInsets);
+		mTopBar.setPadding(0, systemInsets.top, 0, 0);
+		mBottomBar.setPadding(0, 0, 0, systemInsets.bottom);
+	}
+
 	public void createUI(Bundle savedInstanceState) {
 		if (core == null)
 			return;
@@ -575,6 +598,29 @@ public class DocumentActivity extends Activity
 		if(savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false))
 			searchModeOn();
 
+		mTopBar.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+			public WindowInsets onApplyWindowInsets(View v, WindowInsets windowInsets)
+			{
+				applyInsets(windowInsets);
+				return WindowInsets.CONSUMED;
+			}
+		});
+
+		if (Build.VERSION.SDK_INT >= 29)
+			mBottomBar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+				public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+					View parent = (View) v.getParent();
+					android.graphics.Rect exclusion;
+
+					exclusion = new android.graphics.Rect(0, 0, v.getWidth(), v.getHeight());
+					v.setSystemGestureExclusionRects(Collections.singletonList(exclusion));
+
+					int extended_top = parent.getHeight() - (int) (EXCLUSION_HEIGHT_FACTOR * v.getHeight());
+					exclusion = new android.graphics.Rect(0, extended_top, parent.getWidth(), parent.getHeight());
+					parent.setSystemGestureExclusionRects(Collections.singletonList(exclusion));
+				}
+			});
+
 		// Stick the document view and the buttons overlay into a parent view
 		RelativeLayout layout = new RelativeLayout(this);
 		layout.setBackgroundColor(Color.DKGRAY);
@@ -680,7 +726,7 @@ public class DocumentActivity extends Activity
 				showKeyboard();
 			}
 
-			Animation anim = new TranslateAnimation(0, 0, -mTopBarSwitcher.getHeight(), 0);
+			Animation anim = new TranslateAnimation(0, 0, -(mTopBarSwitcher.getHeight() + systemInsets.top), 0);
 			anim.setDuration(200);
 			anim.setAnimationListener(new Animation.AnimationListener() {
 				public void onAnimationStart(Animation animation) {
@@ -691,18 +737,18 @@ public class DocumentActivity extends Activity
 			});
 			mTopBarSwitcher.startAnimation(anim);
 
-			anim = new TranslateAnimation(0, 0, mPageSlider.getHeight(), 0);
+			anim = new TranslateAnimation(0, 0, mBottomBar.getHeight() + systemInsets.bottom, 0);
 			anim.setDuration(200);
 			anim.setAnimationListener(new Animation.AnimationListener() {
 				public void onAnimationStart(Animation animation) {
-					mPageSlider.setVisibility(View.VISIBLE);
+					mBottomBar.setVisibility(View.VISIBLE);
 				}
 				public void onAnimationRepeat(Animation animation) {}
 				public void onAnimationEnd(Animation animation) {
 					mPageNumberView.setVisibility(View.VISIBLE);
 				}
 			});
-			mPageSlider.startAnimation(anim);
+			mBottomBar.startAnimation(anim);
 		}
 	}
 
@@ -711,7 +757,7 @@ public class DocumentActivity extends Activity
 			mButtonsVisible = false;
 			hideKeyboard();
 
-			Animation anim = new TranslateAnimation(0, 0, 0, -mTopBarSwitcher.getHeight());
+			Animation anim = new TranslateAnimation(0, 0, 0, -(mTopBarSwitcher.getHeight() + systemInsets.top));
 			anim.setDuration(200);
 			anim.setAnimationListener(new Animation.AnimationListener() {
 				public void onAnimationStart(Animation animation) {}
@@ -722,7 +768,7 @@ public class DocumentActivity extends Activity
 			});
 			mTopBarSwitcher.startAnimation(anim);
 
-			anim = new TranslateAnimation(0, 0, 0, mPageSlider.getHeight());
+			anim = new TranslateAnimation(0, 0, 0, mBottomBar.getHeight() + systemInsets.bottom);
 			anim.setDuration(200);
 			anim.setAnimationListener(new Animation.AnimationListener() {
 				public void onAnimationStart(Animation animation) {
@@ -730,10 +776,10 @@ public class DocumentActivity extends Activity
 				}
 				public void onAnimationRepeat(Animation animation) {}
 				public void onAnimationEnd(Animation animation) {
-					mPageSlider.setVisibility(View.INVISIBLE);
+					mBottomBar.setVisibility(View.INVISIBLE);
 				}
 			});
-			mPageSlider.startAnimation(anim);
+			mBottomBar.startAnimation(anim);
 		}
 	}
 
@@ -743,7 +789,8 @@ public class DocumentActivity extends Activity
 			//Focus on EditTextWidget
 			mSearchText.requestFocus();
 			showKeyboard();
-			mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
+			mActionBar.setVisibility(View.GONE);
+			mSearchBar.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -751,7 +798,8 @@ public class DocumentActivity extends Activity
 		if (mTopBarMode == TopBarMode.Search) {
 			mTopBarMode = TopBarMode.Main;
 			hideKeyboard();
-			mTopBarSwitcher.setDisplayedChild(mTopBarMode.ordinal());
+			mActionBar.setVisibility(View.VISIBLE);
+			mSearchBar.setVisibility(View.GONE);
 			SearchTaskResult.set(null);
 			// Make the ReaderView act on the change to mSearchTaskResult
 			// via overridden onChildSetup method.
@@ -773,6 +821,10 @@ public class DocumentActivity extends Activity
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
+		mTopBar = (LinearLayout)mButtonsView.findViewById(R.id.topBar);
+		mActionBar = (LinearLayout)mButtonsView.findViewById(R.id.actionBar);
+		mSearchBar = (LinearLayout)mButtonsView.findViewById(R.id.searchBar);
+		mBottomBar = (LinearLayout)mButtonsView.findViewById(R.id.bottomBar);
 		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);
 		mSearchFwd = (ImageButton)mButtonsView.findViewById(R.id.searchForward);
 		mSearchClose = (ImageButton)mButtonsView.findViewById(R.id.searchClose);
@@ -781,8 +833,10 @@ public class DocumentActivity extends Activity
 		mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
 		mTopBarSwitcher.setVisibility(View.INVISIBLE);
 		mPageNumberView.setVisibility(View.INVISIBLE);
-
-		mPageSlider.setVisibility(View.INVISIBLE);
+		mActionBar.setVisibility(View.VISIBLE);
+		mTopBar.setVisibility(View.VISIBLE);
+		mSearchBar.setVisibility(View.GONE);
+		mBottomBar.setVisibility(View.INVISIBLE);
 	}
 
 	private void showKeyboard() {
