@@ -16,7 +16,8 @@ public class PageAdapter extends BaseAdapter {
 	private final Context mContext;
 	private final MuPDFCore mCore;
 	private final SparseArray<PointF> mPageSizes = new SparseArray<PointF>();
-	private       Bitmap mSharedHqBm;
+	private       Bitmap mSharedHqBm1;
+	private       Bitmap mSharedHqBm2;
 
 	public PageAdapter(Context c, MuPDFCore core) {
 		mContext = c;
@@ -42,9 +43,12 @@ public class PageAdapter extends BaseAdapter {
 	public synchronized void releaseBitmaps()
 	{
 		//  recycle and release the shared bitmap.
-		if (mSharedHqBm!=null)
-			mSharedHqBm.recycle();
-		mSharedHqBm = null;
+		if (mSharedHqBm1!=null)
+			mSharedHqBm1.recycle();
+		mSharedHqBm1 = null;
+		if (mSharedHqBm2!=null)
+			mSharedHqBm2.recycle();
+		mSharedHqBm2 = null;
 	}
 
 	public void refresh() {
@@ -54,15 +58,18 @@ public class PageAdapter extends BaseAdapter {
 	public synchronized View getView(final int position, View convertView, ViewGroup parent) {
 		final PageView pageView;
 		if (convertView == null) {
-			if (mSharedHqBm == null || mSharedHqBm.getWidth() != parent.getWidth() || mSharedHqBm.getHeight() != parent.getHeight())
+			if (mSharedHqBm1 == null || mSharedHqBm1.getWidth() != parent.getWidth() || mSharedHqBm1.getHeight() != parent.getHeight())
 			{
-				if (parent.getWidth() > 0 && parent.getHeight() > 0)
-					mSharedHqBm = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
-				else
-					mSharedHqBm = null;
+				if (parent.getWidth() > 0 && parent.getHeight() > 0) {
+					mSharedHqBm1 = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
+					mSharedHqBm2 = Bitmap.createBitmap(parent.getWidth(), parent.getHeight(), Bitmap.Config.ARGB_8888);
+				} else {
+					mSharedHqBm1 = null;
+					mSharedHqBm2 = null;
+				}
 			}
 
-			pageView = new PageView(mContext, mCore, new Point(parent.getWidth(), parent.getHeight()), mSharedHqBm);
+			pageView = new PageView(mContext, mCore, new Point(parent.getWidth(), parent.getHeight()), mSharedHqBm1, mSharedHqBm2);
 		} else {
 			pageView = (PageView) convertView;
 		}

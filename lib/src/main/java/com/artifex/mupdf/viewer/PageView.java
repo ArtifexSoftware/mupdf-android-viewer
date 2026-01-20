@@ -79,9 +79,15 @@ public class PageView extends ViewGroup {
 
 	private       Point     mPatchViewSize; // View size on the basis of which the patch was created
 	private       Rect      mPatchArea;
-	private       ImageView mPatch;
+
 	private       Bitmap    mPatchBm;
+	private       ImageView mPatch;
+
+	private       Bitmap    mOldPatchBm;
+	private       ImageView mOldPatch;
+
 	private       CancellableAsyncTask<Void, Boolean> mDrawPatch;
+
 	private       Quad      mSearchBoxes[][];
 	protected     Link      mLinks[];
 	private       View      mSearchView;
@@ -93,14 +99,15 @@ public class PageView extends ViewGroup {
 	private       ProgressBar mBusyIndicator;
 	private final Handler   mHandler = new Handler();
 
-	public PageView(Context c, MuPDFCore core, Point parentSize, Bitmap sharedHqBm) {
+	public PageView(Context c, MuPDFCore core, Point parentSize, Bitmap sharedHqBm1, Bitmap sharedHqBm2) {
 		super(c);
 		mContext = c;
 		mCore = core;
 		mParentSize = parentSize;
 		setBackgroundColor(BACKGROUND_COLOR);
 		mEntireBm = Bitmap.createBitmap(parentSize.x, parentSize.y, Config.ARGB_8888);
-		mPatchBm = sharedHqBm;
+		mPatchBm = sharedHqBm1;
+		mOldPatchBm = sharedHqBm2;
 		mEntireMat = new Matrix();
 	}
 
@@ -168,6 +175,10 @@ public class PageView extends ViewGroup {
 		if (mPatchBm!=null)
 			mPatchBm.recycle();
 		mPatchBm = null;
+
+		if (mOldPatchBm!=null)
+			mOldPatchBm.recycle();
+		mOldPatchBm = null;
 	}
 
 	public void blank(int page) {
@@ -476,21 +487,30 @@ public class PageView extends ViewGroup {
 
 			boolean completeRedraw = !(area_unchanged && update);
 
-			// Stop the drawing of previous patch if still going
 			if (mDrawPatch != null) {
+				// Stop the drawing of previous patch if still going
 				mDrawPatch.cancel();
 				mDrawPatch = null;
+			} else {
+				// Swap old and new for the background render
+				ImageView swapPatch = mPatch;
+				mPatch = mOldPatch;
+				mOldPatch = swapPatch;
+
+				Bitmap swapPatchBm = mPatchBm;
+				mPatchBm = mOldPatchBm;
+				mOldPatchBm = swapPatchBm;
 			}
 
 			if (mPatch == null) {
 				// Create the mPatch image view if not already done
 				mPatch = new OpaqueImageView(mContext);
 				mPatch.setScaleType(ImageView.ScaleType.MATRIX);
+				mOldPatch = new OpaqueImageView(mContext);
+				mOldPatch.setScaleType(ImageView.ScaleType.MATRIX);
+
 				if (mSearchView != null)
 					mSearchView.bringToFront();
-			} else {
-				// Remove the stale mPatch from the prior rendering.
-				removeView(mPatch);
 			}
 
 			CancellableTaskDefinition<Void, Boolean> task;
@@ -508,12 +528,15 @@ public class PageView extends ViewGroup {
 
 				public void onPostExecute(Boolean result) {
 					if (result.booleanValue()) {
+						removeView(mOldPatch);
+
 						mPatchViewSize = patchViewSize;
 						mPatchArea = patchArea;
 						clearRenderError();
 						mPatch.setImageBitmap(mPatchBm);
 						mPatch.invalidate();
 						addView(mPatch);
+
 						//requestLayout();
 						// Calling requestLayout here doesn't lead to a later call to layout. No idea
 						// why, but apparently others have run into the problem.
@@ -521,6 +544,7 @@ public class PageView extends ViewGroup {
 					} else {
 						setRenderError("Error rendering patch");
 					}
+					mDrawPatch = null;
 				}
 			};
 
@@ -573,6 +597,9 @@ public class PageView extends ViewGroup {
 				mPatch.setImageBitmap(null);
 				mPatch.invalidate();
 				removeView(mPatch);
+				mOldPatch.setImageBitmap(null);
+				mOldPatch.invalidate();
+				removeView(mOldPatch);
 			}
 	}
 
