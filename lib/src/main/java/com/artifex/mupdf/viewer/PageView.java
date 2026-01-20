@@ -482,13 +482,15 @@ public class PageView extends ViewGroup {
 				mDrawPatch = null;
 			}
 
-			// Create and add the image view if not already done
 			if (mPatch == null) {
+				// Create the mPatch image view if not already done
 				mPatch = new OpaqueImageView(mContext);
 				mPatch.setScaleType(ImageView.ScaleType.MATRIX);
-				addView(mPatch);
 				if (mSearchView != null)
 					mSearchView.bringToFront();
+			} else {
+				// Remove the stale mPatch from the prior rendering.
+				removeView(mPatch);
 			}
 
 			CancellableTaskDefinition<Void, Boolean> task;
@@ -511,6 +513,7 @@ public class PageView extends ViewGroup {
 						clearRenderError();
 						mPatch.setImageBitmap(mPatchBm);
 						mPatch.invalidate();
+						addView(mPatch);
 						//requestLayout();
 						// Calling requestLayout here doesn't lead to a later call to layout. No idea
 						// why, but apparently others have run into the problem.
@@ -569,6 +572,7 @@ public class PageView extends ViewGroup {
 			if (mPatch != null) {
 				mPatch.setImageBitmap(null);
 				mPatch.invalidate();
+				removeView(mPatch);
 			}
 	}
 
