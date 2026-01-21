@@ -72,6 +72,7 @@ public class DocumentActivity extends Activity
 
 	private final int    OUTLINE_REQUEST=0;
 	private MuPDFCore    core;
+	private Uri          mDocFilePath;
 	private String       mDocTitle;
 	private String       mDocKey;
 	private ReaderView   mDocView;
@@ -83,6 +84,7 @@ public class DocumentActivity extends Activity
 	private int          mPageSliderRes;
 	private TextView     mPageNumberView;
 	private ImageButton  mSearchButton;
+	private ImageButton  mShareButton;
 	private ImageButton  mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
 	private LinearLayout mTopBar;
@@ -247,11 +249,16 @@ public class DocumentActivity extends Activity
 				mDocTitle = null;
 				long size = -1;
 				Cursor cursor = null;
+				mDocFilePath = uri; // only set this if opening from an intent, otherwise we can serve stale data or something. I don't know.
 
 				try {
 					cursor = getContentResolver().query(uri, null, null, null, null);
 					if (cursor != null && cursor.moveToFirst()) {
 						int idx;
+
+						//idx = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+						//if (idx >= 0 && cursor.getType(idx) == Cursor.FIELD_TYPE_STRING) // this should be an ugly hack using Media._ID. guessing its google's usual deprecation-without-alternative pattern so i'm avoiding.
+						//	mDocFilePath = cursor.getString(idx);
 
 						idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
 						if (idx >= 0 && cursor.getType(idx) == Cursor.FIELD_TYPE_STRING)
@@ -272,6 +279,7 @@ public class DocumentActivity extends Activity
 						cursor.close();
 				}
 
+				Log.i(APP, "  PATH " + mDocFilePath.toString());
 				Log.i(APP, "  NAME " + mDocTitle);
 				Log.i(APP, "  SIZE " + size);
 
@@ -455,6 +463,18 @@ public class DocumentActivity extends Activity
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				updatePageNumView((progress+mPageSliderRes/2)/mPageSliderRes);
+			}
+		});
+
+		mShareButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("application/pdf"); // how to get rid of overly zealous annoyances? i know nothing about android, only that it gets in the way in the most stupid ways possible
+				intent.putExtra(Intent.EXTRA_STREAM, mDocFilePath); // TODO: convert content:// to file:// somehow?
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+				startActivity(Intent.createChooser(intent, "Shared PDF document"));
 			}
 		});
 
@@ -820,6 +840,7 @@ public class DocumentActivity extends Activity
 		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
 		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
 		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
+		mShareButton = (ImageButton)mButtonsView.findViewById(R.id.shareButton);
 		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
 		mTopBar = (LinearLayout)mButtonsView.findViewById(R.id.topBar);
 		mActionBar = (LinearLayout)mButtonsView.findViewById(R.id.actionBar);
