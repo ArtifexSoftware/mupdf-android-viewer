@@ -81,10 +81,8 @@ public class PageView extends ViewGroup {
 	private       Rect      mPatchArea;
 
 	private       Bitmap    mPatchBm;
-	private       ImageView mPatch;
-
 	private       Bitmap    mOldPatchBm;
-	private       ImageView mOldPatch;
+	private       ImageView mPatch;
 
 	private       CancellableAsyncTask<Void, Boolean> mDrawPatch;
 
@@ -493,10 +491,6 @@ public class PageView extends ViewGroup {
 				mDrawPatch = null;
 			} else {
 				// Swap old and new for the background render
-				ImageView swapPatch = mPatch;
-				mPatch = mOldPatch;
-				mOldPatch = swapPatch;
-
 				Bitmap swapPatchBm = mPatchBm;
 				mPatchBm = mOldPatchBm;
 				mOldPatchBm = swapPatchBm;
@@ -506,8 +500,7 @@ public class PageView extends ViewGroup {
 				// Create the mPatch image view if not already done
 				mPatch = new OpaqueImageView(mContext);
 				mPatch.setScaleType(ImageView.ScaleType.MATRIX);
-				mOldPatch = new OpaqueImageView(mContext);
-				mOldPatch.setScaleType(ImageView.ScaleType.MATRIX);
+				addView(mPatch);
 
 				if (mSearchView != null)
 					mSearchView.bringToFront();
@@ -528,14 +521,11 @@ public class PageView extends ViewGroup {
 
 				public void onPostExecute(Boolean result) {
 					if (result.booleanValue()) {
-						removeView(mOldPatch);
-
 						mPatchViewSize = patchViewSize;
 						mPatchArea = patchArea;
 						clearRenderError();
 						mPatch.setImageBitmap(mPatchBm);
 						mPatch.invalidate();
-						addView(mPatch);
 
 						//requestLayout();
 						// Calling requestLayout here doesn't lead to a later call to layout. No idea
@@ -597,9 +587,6 @@ public class PageView extends ViewGroup {
 				mPatch.setImageBitmap(null);
 				mPatch.invalidate();
 				removeView(mPatch);
-				mOldPatch.setImageBitmap(null);
-				mOldPatch.invalidate();
-				removeView(mOldPatch);
 			}
 	}
 
