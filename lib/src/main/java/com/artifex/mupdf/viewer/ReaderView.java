@@ -965,7 +965,7 @@ public class ReaderView
 	protected void onSettle(View v) {
 		// When the layout has settled ask the page to render
 		// in HQ
-		((PageView) v).updateHq(false);
+		((PageView) v).updateHq();
 	}
 
 	protected void onUnsettle(View v) {
