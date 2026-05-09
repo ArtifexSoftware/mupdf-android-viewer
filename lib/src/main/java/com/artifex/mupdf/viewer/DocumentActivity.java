@@ -71,10 +71,10 @@ public class DocumentActivity extends Activity
 	private final float EXCLUSION_HEIGHT_FACTOR = 2.0f;
 
 	private final int    OUTLINE_REQUEST=0;
-	private MuPDFCore    core;
+	protected MuPDFCore    core;
 	private String       mDocTitle;
 	private String       mDocKey;
-	private ReaderView   mDocView;
+	protected ReaderView   mDocView;
 	private View         mButtonsView;
 	private boolean      mButtonsVisible;
 	private EditText     mPasswordView;
@@ -112,6 +112,7 @@ public class DocumentActivity extends Activity
 	protected Insets systemInsets = Insets.NONE;
 
 	protected View mLayoutButton;
+	protected View mSettingsButton;
 	protected PopupMenu mLayoutPopupMenu;
 
 	private String toHex(byte[] digest) {
@@ -606,6 +607,51 @@ public class DocumentActivity extends Activity
 			}
 		});
 
+		// Load E-ink settings
+		mDocView.setAnimationsEnabled(prefs.getBoolean("animationsEnabled", true));
+		mDocView.setEinkRefreshEnabled(prefs.getBoolean("einkRefreshEnabled", false));
+
+		mSettingsButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				PopupMenu popup = new PopupMenu(DocumentActivity.this, mSettingsButton);
+				final SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+				boolean animationsEnabled = prefs.getBoolean("animationsEnabled", true);
+				boolean einkRefreshEnabled = prefs.getBoolean("einkRefreshEnabled", false);
+
+				MenuItem animItem = popup.getMenu().add(0, 1, 0, "Enable Animations");
+				animItem.setCheckable(true);
+				animItem.setChecked(animationsEnabled);
+
+				MenuItem refreshItem = popup.getMenu().add(0, 2, 0, "E-ink Refresh");
+				refreshItem.setCheckable(true);
+				refreshItem.setChecked(einkRefreshEnabled);
+
+				popup.getMenu().add(0, 3, 0, "Set OpenAI API Key");
+
+				popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						SharedPreferences.Editor edit = prefs.edit();
+						if (item.getItemId() == 1) {
+							boolean val = !item.isChecked();
+							item.setChecked(val);
+							edit.putBoolean("animationsEnabled", val);
+							mDocView.setAnimationsEnabled(val);
+						} else if (item.getItemId() == 2) {
+							boolean val = !item.isChecked();
+							item.setChecked(val);
+							edit.putBoolean("einkRefreshEnabled", val);
+							mDocView.setEinkRefreshEnabled(val);
+						} else if (item.getItemId() == 3) {
+							showApiKeyDialog();
+						}
+						edit.apply();
+						return true;
+					}
+				});
+				popup.show();
+			}
+		});
+
 		if (Build.VERSION.SDK_INT >= 29)
 			mBottomBar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
 				public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
@@ -831,6 +877,7 @@ public class DocumentActivity extends Activity
 		mSearchText = (EditText)mButtonsView.findViewById(R.id.searchText);
 		mLinkButton = (ImageButton)mButtonsView.findViewById(R.id.linkButton);
 		mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
+		mSettingsButton = mButtonsView.findViewById(R.id.settingsButton);
 		mTopBarSwitcher.setVisibility(View.INVISIBLE);
 		mPageNumberView.setVisibility(View.INVISIBLE);
 		mActionBar.setVisibility(View.VISIBLE);
@@ -900,5 +947,26 @@ public class DocumentActivity extends Activity
 				startActivity(intent);
 			}
 		}
+	}
+
+	private void showApiKeyDialog() {
+		final EditText input = new EditText(this);
+		input.setHint("sk-...");
+		String currentKey = SecurePreferences.INSTANCE.getApiKey(this);
+		if (currentKey != null) input.setText(currentKey);
+
+		new AlertDialog.Builder(this)
+			.setTitle("OpenAI API Key")
+			.setMessage("Your key will be encrypted and stored locally.")
+			.setView(input)
+			.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					SecurePreferences.INSTANCE.saveApiKey(DocumentActivity.this, input.getText().toString().trim());
+					Toast.makeText(DocumentActivity.this, "API Key saved securely", Toast.LENGTH_SHORT).show();
+				}
+			})
+			.setNegativeButton("Cancel", null)
+			.show();
 	}
 }

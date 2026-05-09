@@ -247,4 +247,16 @@ public class MuPDFCore
 		reflowable = doc.isReflowable();
 		return authenticated;
 	}
+
+	public synchronized String getPageText(int pageNum) {
+		gotoPage(pageNum);
+		if (page == null) return "";
+		try {
+			com.artifex.mupdf.fitz.StructuredText st = page.toStructuredText("preserve-whitespace");
+			return st.asText();
+		} catch (Exception e) {
+			Log.e(APP, "Failed to extract page text", e);
+			return "";
+		}
+	}
 }

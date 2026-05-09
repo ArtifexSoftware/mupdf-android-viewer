@@ -71,6 +71,8 @@ public class ReaderView
 	private float		  mLastScaleFocusY;
 
 	protected Stack<Integer> mHistory;
+	private boolean mAnimationsEnabled = true;
+	private boolean mEinkRefreshEnabled = false;
 
 	public interface ViewMapper {
 		void applyToView(View view);
@@ -144,6 +146,14 @@ public class ReaderView
 			mResetLayout = true;
 			requestLayout();
 		}
+	}
+
+	public void setAnimationsEnabled(boolean enabled) {
+		mAnimationsEnabled = enabled;
+	}
+
+	public void setEinkRefreshEnabled(boolean enabled) {
+		mEinkRefreshEnabled = enabled;
 	}
 
 	public void moveToNext() {
@@ -252,7 +262,7 @@ public class ReaderView
 			yOffset = smartAdvanceAmount(screenHeight, docHeight - bottom);
 		}
 		mScrollerLastX = mScrollerLastY = 0;
-		mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 400);
+		mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, mAnimationsEnabled ? 400 : 1);
 		mStepper.prod();
 	}
 
@@ -324,7 +334,7 @@ public class ReaderView
 			yOffset = -smartAdvanceAmount(screenHeight, top);
 		}
 		mScrollerLastX = mScrollerLastY = 0;
-		mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, 400);
+		mScroller.startScroll(0, 0, remainingX - xOffset, remainingY - yOffset, mAnimationsEnabled ? 400 : 1);
 		mStepper.prod();
 	}
 
@@ -397,6 +407,19 @@ public class ReaderView
 			float velocityY) {
 		if (mScaling)
 			return true;
+
+		if (!mAnimationsEnabled) {
+			switch(directionOfTravel(velocityX, velocityY)) {
+			case MOVING_LEFT:
+			case MOVING_UP:
+				smartMoveForwards();
+				return true;
+			case MOVING_RIGHT:
+			case MOVING_DOWN:
+				smartMoveBackwards();
+				return true;
+			}
+		}
 
 		View v = mChildViews.get(mCurrent);
 		if (v != null) {
@@ -477,6 +500,10 @@ public class ReaderView
 		PageView pageView = (PageView)getDisplayedView();
 		if (!tapDisabled)
 			onDocMotion();
+
+		if (!mAnimationsEnabled)
+			return true;
+
 		if (!mScaling) {
 			mXScroll -= distanceX;
 			mYScroll -= distanceY;
@@ -875,7 +902,7 @@ public class ReaderView
 		Point corr = getCorrection(getScrollBounds(v));
 		if (corr.x != 0 || corr.y != 0) {
 			mScrollerLastX = mScrollerLastY = 0;
-			mScroller.startScroll(0, 0, corr.x, corr.y, 400);
+			mScroller.startScroll(0, 0, corr.x, corr.y, mAnimationsEnabled ? 400 : 1);
 			mStepper.prod();
 		}
 	}
@@ -957,6 +984,22 @@ public class ReaderView
 			SearchTaskResult.set(null);
 			resetupChildren();
 		}
+		if (mEinkRefreshEnabled) {
+			triggerEinkRefresh();
+		}
+	}
+
+	private void triggerEinkRefresh() {
+		// Generic invalidation to trigger a redraw.
+		// For specific E-ink devices, you might need to use device-specific APIs here.
+		post(new Runnable() {
+			@Override
+			public void run() {
+				invalidate();
+				// Some E-ink devices respond well to a visibility toggle or similar hacks
+				// if a full refresh API is not available.
+			}
+		});
 	}
 
 	protected void onMoveOffChild(int i) {
