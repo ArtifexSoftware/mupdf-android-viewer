@@ -50,7 +50,7 @@ public class LibraryActivity extends Activity
 	public void onActivityResult(int request, int result, Intent data) {
 		if (request == FILE_REQUEST && result == Activity.RESULT_OK) {
 			if (data != null) {
-				Intent intent = new Intent(this, DocumentActivity.class);
+				Intent intent = new Intent(this, AiDocumentActivity.class);
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT);
 				intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 				intent.setAction(Intent.ACTION_VIEW);

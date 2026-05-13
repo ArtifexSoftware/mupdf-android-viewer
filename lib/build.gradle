@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
 
 group = 'com.artifex.mupdf'
@@ -6,6 +7,8 @@ version = '1.27.1a'
 
 dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.+'
+	// Security
+	implementation "androidx.security:security-crypto:1.1.0"
 	if (file('../jni/build.gradle').isFile())
 		api project(':jni')
 	else
@@ -14,10 +17,19 @@ dependencies {
 
 android {
 	namespace 'com.artifex.mupdf.viewer'
-	compileSdkVersion 33
+	compileSdkVersion 34
 	defaultConfig {
 		minSdkVersion 21
 		targetSdkVersion 35
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_17
+		targetCompatibility JavaVersion.VERSION_17
+	}
+
+	kotlinOptions {
+		jvmTarget = '17'
 	}
 	publishing {
 		singleVariant("release") {

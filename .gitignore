@@ -9,3 +9,12 @@ MAVEN
 tags
 mupdf-*-android-viewer.apk
 mupdf-*-android-viewer--app-release.aab
+commit.md
+/.claude
+/.vscode
+.vscode/settings.json
+*.hprof
+pull_request.md
+/test
+commit_message.md
+multimodal_plan.md

@@ -27,6 +27,7 @@ import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
+import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -41,11 +42,13 @@ import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,45 +64,46 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Locale;
 
-public class DocumentActivity extends Activity
-{
+public class DocumentActivity extends Activity {
 	private final String APP = "MuPDF";
 
 	/* The core rendering instance */
-	enum TopBarMode {Main, Search, More};
+	enum TopBarMode {
+		Main, Search, More
+	};
 
 	private final float EXCLUSION_HEIGHT_FACTOR = 2.0f;
 
-	private final int    OUTLINE_REQUEST=0;
-	private MuPDFCore    core;
-	private String       mDocTitle;
-	private String       mDocKey;
-	private ReaderView   mDocView;
-	private View         mButtonsView;
-	private boolean      mButtonsVisible;
-	private EditText     mPasswordView;
-	private TextView     mDocNameView;
-	private SeekBar      mPageSlider;
-	private int          mPageSliderRes;
-	private TextView     mPageNumberView;
-	private ImageButton  mSearchButton;
-	private ImageButton  mOutlineButton;
+	private final int OUTLINE_REQUEST = 0;
+	protected MuPDFCore core;
+	protected String mDocTitle;
+	private String mDocKey;
+	protected ReaderView mDocView;
+	private View mButtonsView;
+	private boolean mButtonsVisible;
+	private EditText mPasswordView;
+	private TextView mDocNameView;
+	private SeekBar mPageSlider;
+	private int mPageSliderRes;
+	private TextView mPageNumberView;
+	private ImageButton mSearchButton;
+	private ImageButton mOutlineButton;
 	private ViewAnimator mTopBarSwitcher;
 	private LinearLayout mTopBar;
 	private LinearLayout mActionBar;
 	private LinearLayout mSearchBar;
 	private LinearLayout mBottomBar;
-	private ImageButton  mLinkButton;
-	private TopBarMode   mTopBarMode = TopBarMode.Main;
-	private ImageButton  mSearchBack;
-	private ImageButton  mSearchFwd;
-	private ImageButton  mSearchClose;
-	private EditText     mSearchText;
-	private SearchTask   mSearchTask;
+	private ImageButton mLinkButton;
+	private TopBarMode mTopBarMode = TopBarMode.Main;
+	private ImageButton mSearchBack;
+	private ImageButton mSearchFwd;
+	private ImageButton mSearchClose;
+	private EditText mSearchText;
+	private SearchTask mSearchTask;
 	private AlertDialog.Builder mAlertBuilder;
-	private boolean    mLinkHighlight = false;
+	private boolean mLinkHighlight = false;
 	private final Handler mHandler = new Handler();
-	private boolean mAlertsActive= false;
+	private boolean mAlertsActive = false;
 	private AlertDialog mAlertDialog;
 	private ArrayList<OutlineActivity.Item> mFlatOutline;
 	private boolean mReturnToLibraryActivity = false;
@@ -112,6 +116,7 @@ public class DocumentActivity extends Activity
 	protected Insets systemInsets = Insets.NONE;
 
 	protected View mLayoutButton;
+	protected View mSettingsButton;
 	protected PopupMenu mLayoutPopupMenu;
 
 	private String toHex(byte[] digest) {
@@ -121,28 +126,20 @@ public class DocumentActivity extends Activity
 		return builder.toString();
 	}
 
-        private MuPDFCore openBuffer(byte buffer[], String magic)
-        {
-                try
-                {
-                        core = new MuPDFCore(buffer, magic);
-                }
-                catch (Exception e)
-                {
-                        Log.e(APP, "Error opening document buffer: " + e);
-                        return null;
-                }
-                return core;
+	private MuPDFCore openBuffer(byte buffer[], String magic) {
+		try {
+			core = new MuPDFCore(buffer, magic);
+		} catch (Exception e) {
+			Log.e(APP, "Error opening document buffer: " + e);
+			return null;
+		}
+		return core;
 	}
 
-	private MuPDFCore openStream(SeekableInputStream stm, String magic)
-	{
-		try
-		{
+	private MuPDFCore openStream(SeekableInputStream stm, String magic) {
+		try {
 			core = new MuPDFCore(stm, magic);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			Log.e(APP, "Error opening document stream: " + e);
 			return null;
 		}
@@ -206,8 +203,7 @@ public class DocumentActivity extends Activity
 
 	/** Called when the activity is first created. */
 	@Override
-	public void onCreate(final Bundle savedInstanceState)
-	{
+	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -215,7 +211,7 @@ public class DocumentActivity extends Activity
 
 		DisplayMetrics metrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(metrics);
-		mDisplayDPI = (int)metrics.densityDpi;
+		mDisplayDPI = (int) metrics.densityDpi;
 
 		mAlertBuilder = new AlertDialog.Builder(this);
 
@@ -228,13 +224,14 @@ public class DocumentActivity extends Activity
 			Intent intent = getIntent();
 			SeekableInputStream file;
 
-			mReturnToLibraryActivity = intent.getIntExtra(getComponentName().getPackageName() + ".ReturnToLibraryActivity", 0) != 0;
+			mReturnToLibraryActivity = intent
+					.getIntExtra(getComponentName().getPackageName() + ".ReturnToLibraryActivity", 0) != 0;
 
 			if (Intent.ACTION_VIEW.equals(intent.getAction())) {
 				Uri uri = intent.getData();
 				String mimetype = getIntent().getType();
 
-				if (uri == null)  {
+				if (uri == null) {
 					showCannotOpenDialog("No document uri to open");
 					return;
 				}
@@ -296,13 +293,11 @@ public class DocumentActivity extends Activity
 				requestPassword(savedInstanceState);
 				return;
 			}
-			if (core != null && core.countPages() == 0)
-			{
+			if (core != null && core.countPages() == 0) {
 				core = null;
 			}
 		}
-		if (core == null)
-		{
+		if (core == null) {
 			AlertDialog alert = mAlertBuilder.create();
 			alert.setTitle(R.string.cannot_open_document);
 			alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dismiss),
@@ -345,10 +340,10 @@ public class DocumentActivity extends Activity
 		alert.setButton(AlertDialog.BUTTON_NEGATIVE, getString(R.string.cancel),
 				new DialogInterface.OnClickListener() {
 
-			public void onClick(DialogInterface dialog, int which) {
-				finish();
-			}
-		});
+					public void onClick(DialogInterface dialog, int which) {
+						finish();
+					}
+				});
 		alert.show();
 	}
 
@@ -433,8 +428,8 @@ public class DocumentActivity extends Activity
 		makeButtonsView();
 
 		// Set up the page slider
-		int smax = Math.max(core.countPages()-1,1);
-		mPageSliderRes = ((10 + smax - 1)/smax) * 2;
+		int smax = Math.max(core.countPages() - 1, 1);
+		mPageSliderRes = ((10 + smax - 1) / smax) * 2;
 
 		// Set the file-name text
 		String docTitle = core.getTitle();
@@ -447,14 +442,15 @@ public class DocumentActivity extends Activity
 		mPageSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				mDocView.pushHistory();
-				mDocView.setDisplayedViewIndex((seekBar.getProgress()+mPageSliderRes/2)/mPageSliderRes);
+				mDocView.setDisplayedViewIndex((seekBar.getProgress() + mPageSliderRes / 2) / mPageSliderRes);
 			}
 
-			public void onStartTrackingTouch(SeekBar seekBar) {}
+			public void onStartTrackingTouch(SeekBar seekBar) {
+			}
 
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				updatePageNumView((progress+mPageSliderRes/2)/mPageSliderRes);
+				updatePageNumView((progress + mPageSliderRes / 2) / mPageSliderRes);
 			}
 		});
 
@@ -486,18 +482,23 @@ public class DocumentActivity extends Activity
 				setButtonEnabled(mSearchFwd, haveText);
 
 				// Remove any previous search results
-				if (SearchTaskResult.get() != null && !mSearchText.getText().toString().equals(SearchTaskResult.get().txt)) {
+				if (SearchTaskResult.get() != null
+						&& !mSearchText.getText().toString().equals(SearchTaskResult.get().txt)) {
 					SearchTaskResult.set(null);
 					mDocView.resetupChildren();
 				}
 			}
+
 			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {}
+					int after) {
+			}
+
 			public void onTextChanged(CharSequence s, int start, int before,
-					int count) {}
+					int count) {
+			}
 		});
 
-		//React to Done button on keyboard
+		// React to Done button on keyboard
 		mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 				if (actionId == EditorInfo.IME_ACTION_DONE)
@@ -540,17 +541,28 @@ public class DocumentActivity extends Activity
 				public boolean onMenuItemClick(MenuItem item) {
 					float oldLayoutEM = mLayoutEM;
 					int id = item.getItemId();
-					if (id == R.id.action_layout_6pt) mLayoutEM = 6;
-					else if (id == R.id.action_layout_7pt) mLayoutEM = 7;
-					else if (id == R.id.action_layout_8pt) mLayoutEM = 8;
-					else if (id == R.id.action_layout_9pt) mLayoutEM = 9;
-					else if (id == R.id.action_layout_10pt) mLayoutEM = 10;
-					else if (id == R.id.action_layout_11pt) mLayoutEM = 11;
-					else if (id == R.id.action_layout_12pt) mLayoutEM = 12;
-					else if (id == R.id.action_layout_13pt) mLayoutEM = 13;
-					else if (id == R.id.action_layout_14pt) mLayoutEM = 14;
-					else if (id == R.id.action_layout_15pt) mLayoutEM = 15;
-					else if (id == R.id.action_layout_16pt) mLayoutEM = 16;
+					if (id == R.id.action_layout_6pt)
+						mLayoutEM = 6;
+					else if (id == R.id.action_layout_7pt)
+						mLayoutEM = 7;
+					else if (id == R.id.action_layout_8pt)
+						mLayoutEM = 8;
+					else if (id == R.id.action_layout_9pt)
+						mLayoutEM = 9;
+					else if (id == R.id.action_layout_10pt)
+						mLayoutEM = 10;
+					else if (id == R.id.action_layout_11pt)
+						mLayoutEM = 11;
+					else if (id == R.id.action_layout_12pt)
+						mLayoutEM = 12;
+					else if (id == R.id.action_layout_13pt)
+						mLayoutEM = 13;
+					else if (id == R.id.action_layout_14pt)
+						mLayoutEM = 14;
+					else if (id == R.id.action_layout_15pt)
+						mLayoutEM = 15;
+					else if (id == R.id.action_layout_16pt)
+						mLayoutEM = 16;
 					if (oldLayoutEM != mLayoutEM)
 						relayoutDocument();
 					return true;
@@ -567,8 +579,7 @@ public class DocumentActivity extends Activity
 			mOutlineButton.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					boolean outlineTruncated = false;
-					if (mFlatOutline == null)
-					{
+					if (mFlatOutline == null) {
 						mFlatOutline = core.getOutline();
 						outlineTruncated = core.wasOutlineTruncated();
 					}
@@ -580,7 +591,8 @@ public class DocumentActivity extends Activity
 						intent.putExtra("PALLETBUNDLE", Pallet.sendBundle(bundle));
 						startActivityForResult(intent, OUTLINE_REQUEST);
 						if (outlineTruncated)
-							Toast.makeText(DocumentActivity.this, "Outline too large, truncated", Toast.LENGTH_SHORT).show();
+							Toast.makeText(DocumentActivity.this, "Outline too large, truncated", Toast.LENGTH_SHORT)
+									.show();
 					}
 				}
 			});
@@ -590,25 +602,70 @@ public class DocumentActivity extends Activity
 
 		// Reenstate last state if it was recorded
 		SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-		mDocView.setDisplayedViewIndex(prefs.getInt("page"+mDocKey, 0));
+		mDocView.setDisplayedViewIndex(prefs.getInt("page" + mDocKey, 0));
 
 		if (savedInstanceState == null || !savedInstanceState.getBoolean("ButtonsHidden", false))
 			showButtons();
 
-		if(savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false))
+		if (savedInstanceState != null && savedInstanceState.getBoolean("SearchMode", false))
 			searchModeOn();
 
 		mTopBar.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-			public WindowInsets onApplyWindowInsets(View v, WindowInsets windowInsets)
-			{
+			public WindowInsets onApplyWindowInsets(View v, WindowInsets windowInsets) {
 				applyInsets(windowInsets);
 				return WindowInsets.CONSUMED;
 			}
 		});
 
+		// Load E-ink settings
+		mDocView.setAnimationsEnabled(prefs.getBoolean("animationsEnabled", true));
+		mDocView.setEinkRefreshEnabled(prefs.getBoolean("einkRefreshEnabled", false));
+
+		mSettingsButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				PopupMenu popup = new PopupMenu(DocumentActivity.this, mSettingsButton);
+				final SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
+				boolean animationsEnabled = prefs.getBoolean("animationsEnabled", true);
+				boolean einkRefreshEnabled = prefs.getBoolean("einkRefreshEnabled", false);
+
+				MenuItem animItem = popup.getMenu().add(0, 1, 0, "Enable Animations");
+				animItem.setCheckable(true);
+				animItem.setChecked(animationsEnabled);
+
+				MenuItem refreshItem = popup.getMenu().add(0, 2, 0, "E-ink Refresh");
+				refreshItem.setCheckable(true);
+				refreshItem.setChecked(einkRefreshEnabled);
+
+				popup.getMenu().add(0, 3, 0, "AI Settings");
+
+				popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+					public boolean onMenuItemClick(MenuItem item) {
+						SharedPreferences.Editor edit = prefs.edit();
+						if (item.getItemId() == 1) {
+							boolean val = !item.isChecked();
+							item.setChecked(val);
+							edit.putBoolean("animationsEnabled", val);
+							mDocView.setAnimationsEnabled(val);
+						} else if (item.getItemId() == 2) {
+							boolean val = !item.isChecked();
+							item.setChecked(val);
+							edit.putBoolean("einkRefreshEnabled", val);
+							mDocView.setEinkRefreshEnabled(val);
+						} else if (item.getItemId() == 3) {
+							showAiSettingsDialog();
+						}
+						edit.apply();
+						return true;
+					}
+				});
+				popup.show();
+			}
+		});
+
 		if (Build.VERSION.SDK_INT >= 29)
 			mBottomBar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-				public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+				public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop,
+						int oldRight, int oldBottom) {
 					View parent = (View) v.getParent();
 					android.graphics.Rect exclusion;
 
@@ -632,12 +689,12 @@ public class DocumentActivity extends Activity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
-		case OUTLINE_REQUEST:
-			if (resultCode >= RESULT_FIRST_USER && mDocView != null) {
-				mDocView.pushHistory();
-				mDocView.setDisplayedViewIndex(resultCode-RESULT_FIRST_USER);
-			}
-			break;
+			case OUTLINE_REQUEST:
+				if (resultCode >= RESULT_FIRST_USER && mDocView != null) {
+					mDocView.pushHistory();
+					mDocView.setDisplayedViewIndex(resultCode - RESULT_FIRST_USER);
+				}
+				break;
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
@@ -656,7 +713,7 @@ public class DocumentActivity extends Activity
 			// so it can go in the bundle
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page" + mDocKey, mDocView.getDisplayedViewIndex());
 			edit.apply();
 		}
 
@@ -677,18 +734,17 @@ public class DocumentActivity extends Activity
 		if (mDocKey != null && mDocView != null) {
 			SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
 			SharedPreferences.Editor edit = prefs.edit();
-			edit.putInt("page"+mDocKey, mDocView.getDisplayedViewIndex());
+			edit.putInt("page" + mDocKey, mDocView.getDisplayedViewIndex());
 			edit.apply();
 		}
 	}
 
-	public void onDestroy()
-	{
+	public void onDestroy() {
 		if (mDocView != null) {
 			mDocView.applyToChildren(new ReaderView.ViewMapper() {
 				@Override
 				public void applyToView(View view) {
-					((PageView)view).releaseBitmaps();
+					((PageView) view).releaseBitmaps();
 				}
 			});
 		}
@@ -719,7 +775,7 @@ public class DocumentActivity extends Activity
 			// Update page number text and slider
 			int index = mDocView.getDisplayedViewIndex();
 			updatePageNumView(index);
-			mPageSlider.setMax((core.countPages()-1)*mPageSliderRes);
+			mPageSlider.setMax((core.countPages() - 1) * mPageSliderRes);
 			mPageSlider.setProgress(index * mPageSliderRes);
 			if (mTopBarMode == TopBarMode.Search) {
 				mSearchText.requestFocus();
@@ -732,8 +788,12 @@ public class DocumentActivity extends Activity
 				public void onAnimationStart(Animation animation) {
 					mTopBarSwitcher.setVisibility(View.VISIBLE);
 				}
-				public void onAnimationRepeat(Animation animation) {}
-				public void onAnimationEnd(Animation animation) {}
+
+				public void onAnimationRepeat(Animation animation) {
+				}
+
+				public void onAnimationEnd(Animation animation) {
+				}
 			});
 			mTopBarSwitcher.startAnimation(anim);
 
@@ -743,7 +803,10 @@ public class DocumentActivity extends Activity
 				public void onAnimationStart(Animation animation) {
 					mBottomBar.setVisibility(View.VISIBLE);
 				}
-				public void onAnimationRepeat(Animation animation) {}
+
+				public void onAnimationRepeat(Animation animation) {
+				}
+
 				public void onAnimationEnd(Animation animation) {
 					mPageNumberView.setVisibility(View.VISIBLE);
 				}
@@ -760,8 +823,12 @@ public class DocumentActivity extends Activity
 			Animation anim = new TranslateAnimation(0, 0, 0, -(mTopBarSwitcher.getHeight() + systemInsets.top));
 			anim.setDuration(200);
 			anim.setAnimationListener(new Animation.AnimationListener() {
-				public void onAnimationStart(Animation animation) {}
-				public void onAnimationRepeat(Animation animation) {}
+				public void onAnimationStart(Animation animation) {
+				}
+
+				public void onAnimationRepeat(Animation animation) {
+				}
+
 				public void onAnimationEnd(Animation animation) {
 					mTopBarSwitcher.setVisibility(View.INVISIBLE);
 				}
@@ -774,7 +841,10 @@ public class DocumentActivity extends Activity
 				public void onAnimationStart(Animation animation) {
 					mPageNumberView.setVisibility(View.INVISIBLE);
 				}
-				public void onAnimationRepeat(Animation animation) {}
+
+				public void onAnimationRepeat(Animation animation) {
+				}
+
 				public void onAnimationEnd(Animation animation) {
 					mBottomBar.setVisibility(View.INVISIBLE);
 				}
@@ -786,7 +856,7 @@ public class DocumentActivity extends Activity
 	private void searchModeOn() {
 		if (mTopBarMode != TopBarMode.Search) {
 			mTopBarMode = TopBarMode.Search;
-			//Focus on EditTextWidget
+			// Focus on EditTextWidget
 			mSearchText.requestFocus();
 			showKeyboard();
 			mActionBar.setVisibility(View.GONE);
@@ -815,22 +885,23 @@ public class DocumentActivity extends Activity
 
 	private void makeButtonsView() {
 		mButtonsView = getLayoutInflater().inflate(R.layout.document_activity, null);
-		mDocNameView = (TextView)mButtonsView.findViewById(R.id.docNameText);
-		mPageSlider = (SeekBar)mButtonsView.findViewById(R.id.pageSlider);
-		mPageNumberView = (TextView)mButtonsView.findViewById(R.id.pageNumber);
-		mSearchButton = (ImageButton)mButtonsView.findViewById(R.id.searchButton);
-		mOutlineButton = (ImageButton)mButtonsView.findViewById(R.id.outlineButton);
-		mTopBarSwitcher = (ViewAnimator)mButtonsView.findViewById(R.id.switcher);
-		mTopBar = (LinearLayout)mButtonsView.findViewById(R.id.topBar);
-		mActionBar = (LinearLayout)mButtonsView.findViewById(R.id.actionBar);
-		mSearchBar = (LinearLayout)mButtonsView.findViewById(R.id.searchBar);
-		mBottomBar = (LinearLayout)mButtonsView.findViewById(R.id.bottomBar);
-		mSearchBack = (ImageButton)mButtonsView.findViewById(R.id.searchBack);
-		mSearchFwd = (ImageButton)mButtonsView.findViewById(R.id.searchForward);
-		mSearchClose = (ImageButton)mButtonsView.findViewById(R.id.searchClose);
-		mSearchText = (EditText)mButtonsView.findViewById(R.id.searchText);
-		mLinkButton = (ImageButton)mButtonsView.findViewById(R.id.linkButton);
+		mDocNameView = (TextView) mButtonsView.findViewById(R.id.docNameText);
+		mPageSlider = (SeekBar) mButtonsView.findViewById(R.id.pageSlider);
+		mPageNumberView = (TextView) mButtonsView.findViewById(R.id.pageNumber);
+		mSearchButton = (ImageButton) mButtonsView.findViewById(R.id.searchButton);
+		mOutlineButton = (ImageButton) mButtonsView.findViewById(R.id.outlineButton);
+		mTopBarSwitcher = (ViewAnimator) mButtonsView.findViewById(R.id.switcher);
+		mTopBar = (LinearLayout) mButtonsView.findViewById(R.id.topBar);
+		mActionBar = (LinearLayout) mButtonsView.findViewById(R.id.actionBar);
+		mSearchBar = (LinearLayout) mButtonsView.findViewById(R.id.searchBar);
+		mBottomBar = (LinearLayout) mButtonsView.findViewById(R.id.bottomBar);
+		mSearchBack = (ImageButton) mButtonsView.findViewById(R.id.searchBack);
+		mSearchFwd = (ImageButton) mButtonsView.findViewById(R.id.searchForward);
+		mSearchClose = (ImageButton) mButtonsView.findViewById(R.id.searchClose);
+		mSearchText = (EditText) mButtonsView.findViewById(R.id.searchText);
+		mLinkButton = (ImageButton) mButtonsView.findViewById(R.id.linkButton);
 		mLayoutButton = mButtonsView.findViewById(R.id.layoutButton);
+		mSettingsButton = mButtonsView.findViewById(R.id.settingsButton);
 		mTopBarSwitcher.setVisibility(View.INVISIBLE);
 		mPageNumberView.setVisibility(View.INVISIBLE);
 		mActionBar.setVisibility(View.VISIBLE);
@@ -840,13 +911,13 @@ public class DocumentActivity extends Activity
 	}
 
 	private void showKeyboard() {
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null)
 			imm.showSoftInput(mSearchText, 0);
 	}
 
 	private void hideKeyboard() {
-		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null)
 			imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
 	}
@@ -900,5 +971,156 @@ public class DocumentActivity extends Activity
 				startActivity(intent);
 			}
 		}
+	}
+
+	private void showAiSettingsDialog() {
+		ScrollView scrollView = new ScrollView(this);
+		LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.VERTICAL);
+		layout.setPadding(60, 40, 60, 40);
+		scrollView.addView(layout);
+
+		// API Keys Section
+		TextView keysHeader = new TextView(this);
+		keysHeader.setText("API Keys (Stored Securely):");
+		keysHeader.setTypeface(null, android.graphics.Typeface.BOLD);
+		layout.addView(keysHeader);
+
+		// OpenAI
+		layout.addView(createLabel("OpenAI Key:"));
+		final EditText openAiInput = createPasswordInput(SecurePreferences.INSTANCE.getOpenAiKey(this));
+		layout.addView(openAiInput);
+
+		// DeepSeek
+		layout.addView(createLabel("DeepSeek Key:"));
+		final EditText deepSeekInput = createPasswordInput(SecurePreferences.INSTANCE.getDeepSeekKey(this));
+		layout.addView(deepSeekInput);
+
+		// Qwen
+		layout.addView(createLabel("Qwen (DashScope) Key:"));
+		final EditText qwenInput = createPasswordInput(SecurePreferences.INSTANCE.getQwenKey(this));
+		layout.addView(qwenInput);
+
+		// Anthropic
+		layout.addView(createLabel("Anthropic (Claude) Key:"));
+		final EditText anthropicInput = createPasswordInput(SecurePreferences.INSTANCE.getAnthropicKey(this));
+		layout.addView(anthropicInput);
+
+		// Gemini
+		layout.addView(createLabel("Gemini Key:"));
+		final EditText geminiInput = createPasswordInput(SecurePreferences.INSTANCE.getGeminiKey(this));
+		layout.addView(geminiInput);
+
+		// Config Section
+		layout.addView(createLabel("\nCurrent Selection:"));
+		
+		layout.addView(createLabel("Base URL:"));
+		final EditText urlInput = new EditText(this);
+		urlInput.setHint("https://api.openai.com/v1");
+		urlInput.setText(SecurePreferences.INSTANCE.getBaseUrl(this));
+		layout.addView(urlInput);
+
+		layout.addView(createLabel("Model ID:"));
+		final EditText modelInput = new EditText(this);
+		modelInput.setHint("gpt-4o, deepseek-chat, etc.");
+		modelInput.setText(SecurePreferences.INSTANCE.getModel(this));
+		layout.addView(modelInput);
+
+		// Presets Section
+		TextView presetLabel = new TextView(this);
+		presetLabel.setText("\nQuick Presets (Auto-fill URL/Model):");
+		presetLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+		layout.addView(presetLabel);
+
+		// GPT Presets
+		layout.addView(createLabel("GPT:"));
+		LinearLayout gptLayout = createButtonRow();
+		gptLayout.addView(createPresetButton("4o-mini", "https://api.openai.com/v1", "gpt-4o-mini", urlInput, modelInput));
+		gptLayout.addView(createPresetButton("5.4-mini", "https://api.openai.com/v1", "gpt-5.4-mini", urlInput, modelInput));
+		gptLayout.addView(createPresetButton("5.4", "https://api.openai.com/v1", "gpt-5.4", urlInput, modelInput));
+		layout.addView(gptLayout);
+
+		// DeepSeek Presets
+		layout.addView(createLabel("DeepSeek:"));
+		LinearLayout dsLayout = createButtonRow();
+		dsLayout.addView(createPresetButton("V3 (Chat)", "https://api.deepseek.com", "deepseek-chat", urlInput, modelInput));
+		dsLayout.addView(createPresetButton("R1 (Reasoning)", "https://api.deepseek.com", "deepseek-reasoner", urlInput, modelInput));
+		layout.addView(dsLayout);
+
+		// Qwen Presets
+		layout.addView(createLabel("Qwen:"));
+		LinearLayout qwenLayout = createButtonRow();
+		qwenLayout.addView(createPresetButton("3.6 Plus", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen3.6-plus", urlInput, modelInput));
+		qwenLayout.addView(createPresetButton("3.5 Flash", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen3.5-flash", urlInput, modelInput));
+		layout.addView(qwenLayout);
+
+		// Gemini Presets
+		layout.addView(createLabel("Gemini:"));
+		LinearLayout geminiLayout = createButtonRow();
+		geminiLayout.addView(createPresetButton("2.0 Flash", "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.0-flash", urlInput, modelInput));
+		geminiLayout.addView(createPresetButton("2.5 Flash", "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-2.5-flash", urlInput, modelInput));
+		geminiLayout.addView(createPresetButton("3 Flash", "https://generativelanguage.googleapis.com/v1beta/openai/", "gemini-3-flash-preview", urlInput, modelInput));
+		layout.addView(geminiLayout);
+
+		// Claude Presets
+		layout.addView(createLabel("Claude:"));
+		LinearLayout claudeLayout = createButtonRow();
+		claudeLayout.addView(createPresetButton("Haiku 4.5", "https://api.anthropic.com/v1/", "claude-3-5-haiku-20241022", urlInput, modelInput));
+		claudeLayout.addView(createPresetButton("Opus 4.7", "https://api.anthropic.com/v1/", "claude-3-opus-20240229", urlInput, modelInput));
+		layout.addView(claudeLayout);
+
+		new AlertDialog.Builder(this)
+				.setTitle("AI Assistant Settings")
+				.setView(scrollView)
+				.setPositiveButton("Save All", new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						SecurePreferences.INSTANCE.saveOpenAiKey(DocumentActivity.this, openAiInput.getText().toString().trim());
+						SecurePreferences.INSTANCE.saveDeepSeekKey(DocumentActivity.this, deepSeekInput.getText().toString().trim());
+						SecurePreferences.INSTANCE.saveQwenKey(DocumentActivity.this, qwenInput.getText().toString().trim());
+						SecurePreferences.INSTANCE.saveAnthropicKey(DocumentActivity.this, anthropicInput.getText().toString().trim());
+						SecurePreferences.INSTANCE.saveGeminiKey(DocumentActivity.this, geminiInput.getText().toString().trim());
+						
+						SecurePreferences.INSTANCE.saveBaseUrl(DocumentActivity.this, urlInput.getText().toString().trim());
+						SecurePreferences.INSTANCE.saveModel(DocumentActivity.this, modelInput.getText().toString().trim());
+						Toast.makeText(DocumentActivity.this, "All settings saved", Toast.LENGTH_SHORT).show();
+					}
+				})
+				.setNegativeButton("Cancel", null)
+				.show();
+	}
+
+	private TextView createLabel(String text) {
+		TextView label = new TextView(this);
+		label.setText(text);
+		label.setPadding(0, 10, 0, 5);
+		return label;
+	}
+
+	private EditText createPasswordInput(String value) {
+		EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+		input.setText(value);
+		return input;
+	}
+
+	private LinearLayout createButtonRow() {
+		LinearLayout row = new LinearLayout(this);
+		row.setOrientation(LinearLayout.HORIZONTAL);
+		return row;
+	}
+
+	private Button createPresetButton(String text, final String url, final String model, final EditText urlInput, final EditText modelInput) {
+		Button btn = new Button(this);
+		btn.setText(text);
+		btn.setTransformationMethod(null); // Disable all-caps
+		btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				urlInput.setText(url);
+				modelInput.setText(model);
+			}
+		});
+		return btn;
 	}
 }

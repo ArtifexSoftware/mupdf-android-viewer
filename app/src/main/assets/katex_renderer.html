@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --accent-color: #4a5568;
+            --code-bg: #f7fafc;
+            --border-color: #e2e8f0;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000000;
+                --text-color: #e2e8f0;
+                --accent-color: #a0aec0;
+                --code-bg: #1a202c;
+                --border-color: #2d3748;
+            }
+        }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 12px;
+            font-size: 15px;
+        }
+        #content { word-wrap: break-word; }
+        h1, h2, h3 { color: var(--accent-color); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
+        code { font-family: "Fira Code", monospace; background: var(--code-bg); padding: 2px 4px; border-radius: 4px; font-size: 0.9em; }
+        pre { background: var(--code-bg); padding: 12px; border-radius: 8px; overflow-x: auto; border: 1px solid var(--border-color); }
+        blockquote { border-left: 4px solid var(--accent-color); margin: 1em 0; padding: 0.5em 1em; background: var(--code-bg); color: var(--accent-color); }
+        table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 0.9em; }
+        th, td { border: 1px solid var(--border-color); padding: 8px; }
+        th { background: var(--code-bg); }
+        hr { border: 0; border-top: 1px solid var(--border-color); margin: 24px 0; }
+        .katex-display { margin: 1em 0; overflow-x: auto; padding: 8px 0; }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+    <script>
+        function updateContent(markdown) {
+            if (!markdown) return;
+            
+            // 1. 特殊处理：将 $$ 块级公式标记暂时替换，防止被 marked 错误解析
+            let content = markdown;
+            
+            // 2. 渲染公式
+            content = content.replace(/\$\$([\s\S]+?)\$\$/g, (m, p1) => {
+                try { return '<div class="katex-display">' + katex.renderToString(p1, { displayMode: true, throwOnError: false }) + '</div>'; } 
+                catch (e) { return m; }
+            });
+            
+            content = content.replace(/\$([\s\S]+?)\$/g, (m, p1) => {
+                try { return katex.renderToString(p1, { displayMode: false, throwOnError: false }); } 
+                catch (e) { return m; }
+            });
+
+            // 3. 解析 Markdown
+            document.getElementById('content').innerHTML = marked.parse(content);
+            
+            // 4. 移除自动滚动逻辑，让用户自主控制翻页
+            // window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
+</body>
+</html>
