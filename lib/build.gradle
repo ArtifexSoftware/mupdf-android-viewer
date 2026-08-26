@@ -17,7 +17,7 @@ android {
 	compileSdkVersion 33
 	defaultConfig {
 		minSdkVersion 21
-		targetSdkVersion 35
+		targetSdkVersion 36
 	}
 	publishing {
 		singleVariant("release") {

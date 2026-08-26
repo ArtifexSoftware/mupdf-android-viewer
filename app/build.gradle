@@ -15,7 +15,7 @@ android {
 	compileSdkVersion 33
 	defaultConfig {
 		minSdkVersion 21
-		targetSdkVersion 35
+		targetSdkVersion 36
 		versionName '1.28.2a'
 		versionCode 240
 	}
