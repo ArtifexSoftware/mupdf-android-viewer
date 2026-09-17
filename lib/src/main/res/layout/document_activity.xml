@@ -76,6 +76,14 @@
 					android:src="@drawable/ic_toc_white_24dp"
 					/>
 
+				<ImageButton
+					android:id="@+id/shareButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@drawable/button"
+					android:src="@drawable/ic_chevron_right_white_24dp"
+					/>
+
 			</LinearLayout>
 
 			<LinearLayout
